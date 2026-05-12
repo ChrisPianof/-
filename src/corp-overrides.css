@@ -1,0 +1,7 @@
+/* Ensures corp theme button overrides win over component default.desktop.css (ESM path loads last) */
+:root {
+  --button-primary-base-bg-color: var(--color-light-accent-primary) !important;
+  --button-primary-hover-bg-color: var(--color-light-accent-primary-hover) !important;
+  --button-primary-active-bg-color: var(--color-light-accent-primary-press) !important;
+  --button-primary-color: var(--color-static-text-primary-inverted) !important;
+}

@@ -1,0 +1,6 @@
+@import '@alfalab/core-components/vars/typography.css';
+@import '@alfalab/core-components-themes/button/corp.css';
+
+body {
+  font-family: var(--font-family-system);
+}
