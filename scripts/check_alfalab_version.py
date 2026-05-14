@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-import json, sys, re, subprocess
+import json
+import re
+import sys
 
 data = json.load(sys.stdin)
 command = data.get('tool_input', {}).get('command', '')
@@ -13,13 +15,13 @@ map_path = '/Users/vadimpianof/Desktop/Claude/AlfaBank/figma_code_map.md'
 try:
     with open(pkg_path) as f:
         installed = json.load(f)['version']
-except:
+except Exception:
     sys.exit(0)
 
 try:
     with open(map_path) as f:
         content = f.read()
-except:
+except Exception:
     sys.exit(0)
 
 match = re.search(r'@alfalab/core-components: ([0-9][^\s⚠\n]+)', content)
