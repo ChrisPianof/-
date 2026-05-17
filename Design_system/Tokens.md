@@ -49,31 +49,56 @@ Deprecated — не использовать: --border-radius-xs/s/m/l/xl/xxl/3x
 
 ## Цвета — ОБЯЗАТЕЛЬНО
 
-Использовать ТОЛЬКО CSS-переменные `--color-*`. Хардкодить hex/rgba ЗАПРЕЩЕНО.
+Использовать ТОЛЬКО CSS-переменные `--color-light-*`. Хардкодить hex/rgba ЗАПРЕЩЕНО.
 Переменные доступны через corp.css — дополнительно импортировать не нужно.
 
-Если нужна переменная по названию из Figma — запросить файл через Figma MCP (`get_variable_defs`).
+### Как выбирать токен (по семантике)
 
-Текст:
---color-light-text-primary      — основной текст (rgba 3,3,6 / 0.88)
---color-light-text-secondary    — вторичный (rgba 4,4,19 / 0.55)
---color-light-text-tertiary     — третичный (rgba 5,8,29 / 0.38)
---color-light-text-positive     — успех (#0d9336)
---color-light-text-negative     — ошибка (#ec2d20)
---color-light-text-attention    — предупреждение (#ea8313)
---color-light-text-info         — информация (#2a77ef)
+| Если красишь… | Категория | Примеры |
+|---|---|---|
+| Текст / типографику | `text-*` | `text-primary`, `text-secondary`, `text-link`, `text-disabled`, `text-positive` |
+| Иконку / svg / dot / штрих | `graphic-*` | `graphic-primary`, `graphic-accent`, `graphic-negative`, `graphic-tertiary` |
+| Фон страницы / sidebar / header (плоский базовый) | `base-bg-*` | `base-bg-primary` (#fff), `base-bg-secondary` (#f2f3f5) |
+| Семантический фон компонента (кнопка, бейдж, плашка) | `bg-*` | `bg-accent`, `bg-positive-muted`, `bg-attention-muted`, `bg-neutral` |
+| Фон модалки / drawer / bottom-sheet | `modal-bg-*` | `modal-bg-primary`, `modal-bg-alt-secondary` |
+| Полупрозрачный/композитный фон (overlay, glass) | `specialbg-*` | `specialbg-component`, `specialbg-overlay`, `specialbg-nulled` |
+| Границу / разделитель | `border-*` | `border-primary`, `border-secondary`, `border-key`, `border-underline` |
+| Статусный индикатор (точка, иконка статуса) | `status-*` / `status-muted-*` | `status-positive`, `status-muted-negative` |
+| Бренд-акцент (Alfa red, тёмный) | `accent-*` | `accent-primary` (#ef3124), `accent-secondary` (#212124) |
+| Серая палитра по шкале | `neutral-{0..1500}` | `neutral-100`, `neutral-700`, `neutral-translucent-300` |
+| Подложка-затемнение | `overlay-*` | `overlay-default` |
+| Прозрачный hit-area | `transparent-*` | `transparent-default`, `transparent-default-hover` |
 
-Фон:
---color-light-base-bg-primary   — основной фон (#fff)
---color-light-base-bg-secondary — альтернативный (#f2f3f5, sidebar/header)
+**Разведение близких категорий:**
+- `base-bg-*` — глобальные плоские фоны зон страницы (страница, sidebar). `bg-*` — фоны компонентов с семантикой. `specialbg-*` — полупрозрачный слой поверх контента.
+- `text-*` — только для текстовых нод. Для иконки рядом с текстом — `graphic-*` соответствующей семантики (`text-negative` + `graphic-negative`).
+- `status-*` — насыщенная заливка статуса. `status-muted-*` — приглушённый фон-плашка под текстом статуса.
+- `neutral-{N}` — когда дизайнер указал конкретный шейд палитры (числовой), а не семантику. По возможности предпочитать семантический токен.
 
-Акцент:
---color-light-accent-primary    — Alfa red (#ef3124)
---color-light-accent-secondary  — тёмный (#212124)
+### Универсальные суффиксы
 
-Тени: --shadow-xs/s/m/l/xl (из vars/shadows-bluetint.css)
+К большинству токенов можно добавить:
 
-Состояния hover/press: добавлять суффикс -hover / -press к любому токену.
+- `-hover` / `-press` — состояния интеракции
+- `-inverted` — для тёмного контейнера (свет на тёмном)
+- `-alpha-{N}` — прозрачность (N ∈ 3, 4, 7, 8, 10, 12, 15, 16, 20, 24, 30, 32, 37, 40, 50)
+- `-shade-{N}` — затемнение (N ∈ 7, 10, 15, 20, 24, 30, 40, 50)
+- `-tint-{N}` — осветление (N ∈ 15, 20, 24, 30, 40, 50)
+
+Комбинируются: `--color-light-text-primary-inverted-shade-30`, `--color-light-bg-primary-inverted-alpha-12`.
+
+### Поиск конкретного токена
+
+Имя из Figma — через Figma MCP (`get_variable_defs`).
+Поиск по фрагменту — в источнике пакета:
+
+```bash
+grep -oE -- "--color-light-[a-z0-9-]*<fragment>[a-z0-9-]*" \
+  node_modules/@alfalab/core-components-vars/colors-bluetint.css | sort -u
+```
+
+Источник истины: `node_modules/@alfalab/core-components-vars/colors-bluetint.css` (497 light-токенов).
+Полный перечень имён в md не дублируется — в пакете всегда актуально.
 
 ---
 
@@ -126,7 +151,18 @@ import { TitleResponsive } from '@alfalab/core-components/typography/title-respo
 <Text view='primary-medium' color='secondary'>Подпись</Text>
 // weight: bold (700) | medium (500) | regular (400, по умолчанию)
 // color: primary | secondary | tertiary | disabled | accent | ...
+```
 
+## Текстовые стили (Alfa Guidelines)
+
+| Назначение | Стиль | Размер / Line-height |
+|------------|-------|----------------------|
+| Наборный текст | `Text view='primary-medium'` | 16 / 24 |
+| Лейблы / саблайны | `Text view='primary-small'` (TBD — подтвердить view) | 14 / 20 |
+
+Маппинг view ↔ конкретный размер из Guidelines уточнить при первом использовании.
+
+```tsx
 ### Do
 - Адаптировать layout через useBreakpoint из src/utils/useBreakpoint.ts
 - Использовать только --border-radius-* для скруглений
