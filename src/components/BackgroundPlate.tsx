@@ -42,25 +42,25 @@ function BackgroundPlateContent({ view, showSkeleton, enableHover, children }: B
     <div
       style={{
         borderRadius: 'var(--border-radius-16)',
-        padding: 'var(--gap-32)',
+        padding: showSkeleton ? 0 : 'var(--gap-32)',
         transition: 'box-shadow 0.2s ease, transform 0.2s ease',
         boxShadow: canHover && hovered ? '0 8px 24px rgba(0,0,0,0.12)' : 'none',
         transform: canHover && hovered ? 'translateY(-2px)' : 'none',
         cursor: canHover ? 'pointer' : 'default',
+        overflow: 'visible',
         ...viewStyles[view],
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {showSkeleton ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {[['60%'], ['100%'], ['80%'], ['90%']].map(([w], i) => (
-            <Skeleton key={i} visible animate>
-              <div style={{ height: i === 0 ? 20 : 16, borderRadius: 8, background: 'currentColor', width: w }} />
-            </Skeleton>
-          ))}
-        </div>
-      ) : children}
+      <Skeleton
+        visible={!!showSkeleton}
+        animate={false}
+        style={{ background: 'var(--color-light-base-bg-secondary)' }}
+        borderRadius={16}
+      >
+        {children}
+      </Skeleton>
     </div>
   );
 }

@@ -146,6 +146,39 @@ Corporate               = #E1EAF6
 
 «Title (внутри BgPlate)» здесь = `TitleView` block-уровня (`view='small'` = DS Medium 22/26 или `view='xsmall'` = DS Small 18/22). Пропы и DevPanel-spec — в `TitleView.md` → секция «BgPlate-контекст».
 
+## Rows внутри BgPlate (горизонтальная группировка form-инпутов)
+
+Контент BgPlate — это **список rows** (`BgRow[]`), а не плоский список items. Row — горизонтальная группа из 1 или более form-инпутов.
+
+**Что может быть в horizontal row** (groupable, set `GROUPABLE_KINDS`):
+- `Input` (`InputDesktop`)
+- `Select` (`SelectDesktop`)
+- `UniversalDateInput` (`UniversalDateInputDesktop`)
+
+**Что НЕ может стоять рядом в row** (`title`, `tabs`):
+- `TitleView` (block-level)
+- `TabsSecondary`
+
+Эти всегда живут в собственной single-item row на всю ширину. Mixed row (например, `TabsSecondary + Input`) запрещены архитектурно: и в DnD (side `left`/`right` блокируется, остаются только `top`/`bottom`), и в safety-check `applyMove` (если каким-то путём пришёл invalid action — отклоняется).
+
+- **Ширины в row:** каждый item имеет `flex: 1` → ширины равны (N items → каждый занимает `1/N` от ширины row минус gap'ы)
+- **Gap между items в row:** **24px** (горизонтальный)
+- **Gap между rows:** **24px** (вертикальный — переопределяет старые правила «20px после Tabs» в случае rows. Title→row и Title→следующий row — оставить 20/32 как в таблице выше; пока не реализовано на уровне DnD-компонента, фиксированы 24px row-to-row)
+
+**DnD-перетаскивание** (реализация в `src/components/BgPlateRowsDnd.tsx`):
+
+- Тащишь item за тело DevPanelWrapper → over другой item
+- Курсор в верхней четверти target → drop сверху (новая row над target row)
+- Курсор в нижней четверти target → drop снизу (новая row под target row)
+- Курсор в центральной зоне, левее центра → встать слева от target в его row *(только если оба groupable)*
+- Курсор правее центра → встать справа от target в его row *(только если оба groupable)*
+
+Если src или target — `title`/`tabs`, либо в target row уже есть `title`/`tabs`, то left/right drop невозможен и компонент автоматически фолбэчит на top/bottom (по знаку `dy`). `canGroup` callback DnD-компонента инкапсулирует это правило.
+
+**Визуальный признак при drag-over** — полупрозрачная плашка с пунктирным border (`#7dd3fc` accent) той ширины и высоты, в которую упадёт src-item:
+- left/right → плашка занимает 50% по ширине, прижата к нужной стороне target item
+- top/bottom → горизонтальная полоса 8px над/под item с solid-границей
+
 ## Контекст применения
 
 - Используется только в зоне Body → Left (см. `PageStructure.md`)
@@ -172,7 +205,7 @@ import { BackgroundPlate, BackgroundPlateView } from '../components/BackgroundPl
 
 Пропы:
 - `view: BackgroundPlateView` — Primary · Secondary · Colored · Dropzone · Border
-- `showSkeleton?: boolean` — заменяет children скелетоном
+- `showSkeleton?: boolean` — оборачивает children в `<Skeleton visible animate={false}>` (`@alfalab/core-components/skeleton`). Skeleton сам берёт размер от children и подменяет их на сплошную статичную плашку цвета `--skeleton-default-color` = `neutral-translucent/100` (`#2637580F`, 6%) — совпадает с Figma placeholder. При `animate=true` Skeleton использовал бы `neutral-translucent/300` (10%) — темнее, мигающий. Высота плейта **не меняется**. При `showSkeleton=true` плейт получает `padding: 0` + `overflow: hidden` — скелетон занимает всё пространство до borderRadius.
 - `enableHover?: boolean` — анимация подъёма при наведении (отключена для Border)
 
 ## Пропсы в DevPanel

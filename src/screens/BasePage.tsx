@@ -11,6 +11,7 @@ import { TitleView, type TitleViewProps, STATUS_COLOR_LABELS, STATUS_LABEL_TO_CO
 import { useBreakpoint } from '../utils/useBreakpoint';
 import { BackgroundPlate, BackgroundPlateView } from '../components/BackgroundPlate';
 import { Sortable, SortableItem } from '../components/Sortable';
+import { BgPlateRowsDnd, type MoveAction, type DnDRow } from '../components/BgPlateRowsDnd';
 import { Tabs as TabsBase, Tab } from '@alfalab/core-components/tabs';
 const Tabs = TabsBase as React.ComponentType<React.ComponentProps<typeof TabsBase> & { TabList?: unknown }>;
 import { SecondaryTabListDesktop } from '@alfalab/core-components/tabs/desktop';
@@ -26,7 +27,8 @@ import { DevPanelWrapper, EditableText, type PropSpec, type AddOption } from '@l
 
 type ChildKind = 'title' | 'tabs' | 'input' | 'select' | 'date';
 type BgChild = { id: number; kind: ChildKind };
-type BgPlateItem = { id: number; children: BgChild[] };
+type BgRow = DnDRow<BgChild>;
+type BgPlateItem = { id: number; children: BgRow[] };
 type IdItem = { id: number };
 
 function usePersisted<T>(key: string, initial: T, validate: (v: unknown) => v is T): [T, React.Dispatch<React.SetStateAction<T>>] {
@@ -50,15 +52,74 @@ const isIdItemArray = (v: unknown): v is IdItem[] =>
   Array.isArray(v) && v.every(it => it && typeof (it as IdItem).id === 'number');
 
 const CHILD_KINDS: ChildKind[] = ['title', 'tabs', 'input', 'select', 'date'];
+const GROUPABLE_KINDS: ChildKind[] = ['input', 'select', 'date'];
+const isGroupable = (k: ChildKind) => GROUPABLE_KINDS.includes(k);
+
+const findChild = (rows: BgRow[], childId: number): BgChild | null => {
+  for (const r of rows) {
+    const c = r.items.find(it => it.id === childId);
+    if (c) return c;
+  }
+  return null;
+};
+const findRow = (rows: BgRow[], rowId: number) => rows.find(r => r.id === rowId);
+
+const isBgChild = (c: unknown): c is BgChild =>
+  Boolean(c) && typeof (c as BgChild).id === 'number' &&
+  CHILD_KINDS.includes((c as BgChild).kind as ChildKind);
+const isBgRow = (r: unknown): r is BgRow =>
+  Boolean(r) && typeof (r as BgRow).id === 'number' &&
+  Array.isArray((r as BgRow).items) && (r as BgRow).items.every(isBgChild);
 const isBgPlatesArray = (v: unknown): v is BgPlateItem[] =>
   Array.isArray(v) && v.every(it =>
-    it && typeof (it as BgPlateItem).id === 'number' &&
+    Boolean(it) && typeof (it as BgPlateItem).id === 'number' &&
     Array.isArray((it as BgPlateItem).children) &&
-    (it as BgPlateItem).children.every(c =>
-      c && typeof c.id === 'number' && CHILD_KINDS.includes(c.kind as ChildKind)),
+    (it as BgPlateItem).children.every(isBgRow),
   );
 
 const nextId = (used: number[]) => (used.length > 0 ? Math.max(...used) + 1 : 0);
+
+const allChildIds = (rows: BgRow[]): number[] =>
+  rows.flatMap(r => r.items.map(it => it.id));
+const allRowIds = (rows: BgRow[]): number[] => rows.map(r => r.id);
+
+function removeItemFromRows(rows: BgRow[], itemId: number): { rows: BgRow[]; removed: BgChild | null } {
+  let removed: BgChild | null = null;
+  const nextRows: BgRow[] = [];
+  for (const row of rows) {
+    const idx = row.items.findIndex(it => it.id === itemId);
+    if (idx < 0) { nextRows.push(row); continue; }
+    removed = row.items[idx];
+    const nextItems = row.items.filter(it => it.id !== itemId);
+    if (nextItems.length > 0) nextRows.push({ ...row, items: nextItems });
+  }
+  return { rows: nextRows, removed };
+}
+
+function applyMove(rows: BgRow[], action: MoveAction): BgRow[] {
+  if (action.srcItemId === action.destItemId) return rows;
+  const { rows: withoutSrc, removed } = removeItemFromRows(rows, action.srcItemId);
+  if (!removed) return rows;
+
+  const destRowIdx = withoutSrc.findIndex(r => r.id === action.destRowId);
+  if (destRowIdx < 0) return rows;
+  const destRow = withoutSrc[destRowIdx];
+  const destItemIdx = destRow.items.findIndex(it => it.id === action.destItemId);
+
+  if (action.side === 'left' || action.side === 'right') {
+    if (destItemIdx < 0) return rows;
+    const groupable = isGroupable(removed.kind) && destRow.items.every(it => isGroupable(it.kind));
+    if (!groupable) return rows;
+    const insertAt = action.side === 'left' ? destItemIdx : destItemIdx + 1;
+    const nextItems = [...destRow.items.slice(0, insertAt), removed, ...destRow.items.slice(insertAt)];
+    const nextRows = [...withoutSrc];
+    nextRows[destRowIdx] = { ...destRow, items: nextItems };
+    return nextRows;
+  }
+  const newRow: BgRow = { id: nextId(allRowIds(withoutSrc)), items: [removed] };
+  const insertRowAt = action.side === 'top' ? destRowIdx : destRowIdx + 1;
+  return [...withoutSrc.slice(0, insertRowAt), newRow, ...withoutSrc.slice(insertRowAt)];
+}
 
 type TabsProps = { size: string; tagView: string; tab1: string; tab2: string; tab3: string };
 const PX_TO_TAB_SIZE: Record<string, 'xxs' | 'xs' | 's' | 'm' | 'l' | 'xl'> = {
@@ -153,21 +214,21 @@ const SELECT_SPEC: PropSpec[] = [
   { name: 'clear', label: 'Кнопка сброса', control: 'toggle', default: true },
 ];
 
+// Date picker всегда занимает половину ширины (block-toggle убран — фикс ширины 50%).
 const DATE_SPEC: PropSpec[] = [
   { name: 'label', label: 'Лейбл', control: 'input' },
   { name: 'view', label: 'Вид', control: 'cycle', values: ['date', 'date-time', 'date-range', 'time', 'month'] },
   { name: 'size', label: 'Размер', control: 'cycle', values: ['48', '56', '64', '72'] },
   { name: 'picker', label: 'Календарь-пикер', control: 'toggle', default: true },
-  { name: 'block', label: 'На всю ширину', control: 'toggle', default: true },
   { name: 'disabled', label: 'Отключён', control: 'toggle', default: true },
   { name: 'error', label: 'Ошибка', control: 'toggle+input', default: 'Неверный формат' },
   { name: 'hint', label: 'Подсказка', control: 'toggle+input', default: 'ДД.ММ.ГГГГ' },
   { name: 'autoCorrection', label: 'Автокоррекция', control: 'toggle', default: true },
 ];
 
-const TYPE_LABELS: Record<string, ChildKind> = { Select: 'select', UniversalDateInput: 'date' };
-const KIND_TO_TYPE_LABEL: Partial<Record<ChildKind, string>> = { select: 'Select', date: 'UniversalDateInput' };
-const TYPE_SWAP_OPTIONS = ['Select', 'UniversalDateInput'];
+const TYPE_LABELS: Record<string, ChildKind> = { Select: 'select', Input: 'input', 'Date Picker': 'date' };
+const KIND_TO_TYPE_LABEL: Partial<Record<ChildKind, string>> = { select: 'Select', input: 'Input', date: 'Date Picker' };
+const TYPE_SWAP_OPTIONS = ['Select', 'Input', 'Date Picker'];
 
 const STEPS_SPEC: PropSpec[] = [
   { name: 'activeStep', label: 'Активный шаг', control: 'number' },
@@ -187,12 +248,6 @@ const BLOCK_TITLE_SPEC: PropSpec[] = [
   { name: 'showSkeleton', label: 'Скелетон', control: 'toggle', default: true },
 ];
 
-const childGap = (kind: ChildKind, prevKind: ChildKind | null): string => {
-  if (prevKind === null) return '0';
-  if (kind === 'input' || kind === 'select' || kind === 'date') return 'var(--gap-24)';
-  return 'var(--gap-20)';
-};
-
 export default function BasePage() {
   const { device } = useBreakpoint();
   const [activeStep, setActiveStep] = useState(2);
@@ -207,8 +262,12 @@ export default function BasePage() {
     'alfabank.base.v2.titleViews', [{ id: 0 }], isIdItemArray,
   );
   const [bgPlates, setBgPlates] = usePersisted<BgPlateItem[]>(
-    'alfabank.base.v2.bgPlates',
-    [{ id: 0, children: [{ id: 0, kind: 'tabs' }, { id: 1, kind: 'input' }, { id: 2, kind: 'select' }] }],
+    'alfabank.base.v3.bgPlates',
+    [{ id: 0, children: [
+      { id: 0, items: [{ id: 0, kind: 'tabs' }] },
+      { id: 1, items: [{ id: 1, kind: 'input' }] },
+      { id: 2, items: [{ id: 2, kind: 'select' }] },
+    ] }],
     isBgPlatesArray,
   );
   const [isleBlocks, setIsleBlocks] = usePersisted<IdItem[]>(
@@ -231,22 +290,29 @@ export default function BasePage() {
     setIsleBlocks(prev => prev.filter(i => i.id !== id));
 
   const addChildTo = (bgId: number, kind: ChildKind) => () =>
-    setBgPlates(prev => prev.map(bp =>
-      bp.id !== bgId ? bp : { ...bp, children: [...bp.children, { id: nextId(bp.children.map(c => c.id)), kind }] },
-    ));
+    setBgPlates(prev => prev.map(bp => {
+      if (bp.id !== bgId) return bp;
+      const newItemId = nextId(allChildIds(bp.children));
+      const newRowId = nextId(allRowIds(bp.children));
+      const newRow: BgRow = { id: newRowId, items: [{ id: newItemId, kind }] };
+      return { ...bp, children: [...bp.children, newRow] };
+    }));
   const removeChild = (bgId: number, childId: number) => () =>
     setBgPlates(prev => prev.map(bp =>
-      bp.id !== bgId ? bp : { ...bp, children: bp.children.filter(c => c.id !== childId) },
+      bp.id !== bgId ? bp : { ...bp, children: removeItemFromRows(bp.children, childId).rows },
     ));
-  const reorderChildren = (bgId: number) => (next: BgChild[]) =>
-    setBgPlates(prev => prev.map(bp => bp.id !== bgId ? bp : { ...bp, children: next }));
+  const moveChild = (bgId: number) => (action: MoveAction) =>
+    setBgPlates(prev => prev.map(bp =>
+      bp.id !== bgId ? bp : { ...bp, children: applyMove(bp.children, action) },
+    ));
   const swapChildKind = (bgId: number, childId: number) => (nextLabel: string) => {
     const nextKind = TYPE_LABELS[nextLabel];
     if (!nextKind) return;
     setBgPlates(prev => prev.map(bp =>
-      bp.id !== bgId ? bp : { ...bp, children: bp.children.map(c =>
-        c.id !== childId ? c : { ...c, kind: nextKind },
-      ) },
+      bp.id !== bgId ? bp : { ...bp, children: bp.children.map(row => ({
+        ...row,
+        items: row.items.map(c => c.id !== childId ? c : { ...c, kind: nextKind }),
+      })) },
     ));
   };
 
@@ -258,7 +324,7 @@ export default function BasePage() {
     { label: 'TabsSecondary', onSelect: addChildTo(bgId, 'tabs') },
     { label: 'Input', onSelect: addChildTo(bgId, 'input') },
     { label: 'Select', onSelect: addChildTo(bgId, 'select') },
-    { label: 'UniversalDateInput', onSelect: addChildTo(bgId, 'date') },
+    { label: 'Date Picker', onSelect: addChildTo(bgId, 'date') },
   ];
   const isleBlockAddOptions: AddOption[] = [
     { label: 'IsleBlock', onSelect: addIsleBlock },
@@ -393,6 +459,11 @@ export default function BasePage() {
   const renderChild = (bgId: number, child: BgChild) => {
     const addOptions = bgPlateChildrenAddOptions(bgId);
     const onDelete = removeChild(bgId, child.id);
+    const typeSwap = {
+      current: KIND_TO_TYPE_LABEL[child.kind] ?? 'Select',
+      options: TYPE_SWAP_OPTIONS,
+      onChange: swapChildKind(bgId, child.id),
+    };
     if (child.kind === 'title') return (
       <DevPanelWrapper<TitleViewProps>
         title="TitleView"
@@ -443,6 +514,7 @@ export default function BasePage() {
         title="Input"
         onDelete={onDelete}
         addOptions={addOptions}
+        typeSwap={typeSwap}
         spec={INPUT_SPEC}
         baseProps={{ label: 'Название поля', block: true, labelView: 'inner', size: '56' }}
         render={(p, ctx) => (
@@ -464,23 +536,18 @@ export default function BasePage() {
         )}
       />
     );
-    const typeSwap = {
-      current: KIND_TO_TYPE_LABEL[child.kind] ?? 'Select',
-      options: TYPE_SWAP_OPTIONS,
-      onChange: swapChildKind(bgId, child.id),
-    };
     if (child.kind === 'date') return (
       <DevPanelWrapper<DateProps>
         key="date"
-        title="UniversalDateInput"
+        title="Date Picker"
         onDelete={onDelete}
         addOptions={addOptions}
         typeSwap={typeSwap}
         spec={DATE_SPEC}
         baseProps={{ label: 'Дата контракта', view: 'date', picker: true, block: true, labelView: 'inner', size: '56', autoCorrection: true }}
-        render={(p) => {
+        render={(p, ctx) => {
           const commonProps = {
-            label: p.label,
+            label: <EditableText value={p.label} onChange={v => ctx.setProp('label', v)} />,
             labelView: p.labelView as 'inner' | 'outer',
             size: Number(p.size) as 48 | 56 | 64 | 72,
             block: true,
@@ -492,7 +559,7 @@ export default function BasePage() {
             onChange: (_date: Date | null, valueStr: string) => setDateValue(valueStr),
           };
           return (
-            <div style={{ width: p.block ? '100%' : '50%' }}>
+            <div style={{ width: '50%' }}>
               {p.picker
                 ? <UniversalDateInputDesktop view="date" picker Calendar={Calendar} {...commonProps} />
                 : <UniversalDateInputDesktop view="date" {...commonProps} />}
@@ -556,20 +623,18 @@ export default function BasePage() {
                   onDelete={removeBgPlate(bp.id)}
                   addOptions={bgPlateChildrenAddOptions(bp.id)}
                 >
-                  <Sortable items={bp.children} onReorder={reorderChildren(bp.id)}>
-                    {(child) => {
-                      const idx = bp.children.findIndex(c => c.id === child.id);
-                      const prevKind = idx > 0 ? bp.children[idx - 1].kind : null;
-                      const gap = childGap(child.kind, prevKind);
-                      return (
-                        <div style={{ marginTop: gap }}>
-                          <SortableItem id={child.id}>
-                            {renderChild(bp.id, child)}
-                          </SortableItem>
-                        </div>
-                      );
+                  <BgPlateRowsDnd
+                    rows={bp.children}
+                    onMove={moveChild(bp.id)}
+                    renderItem={(_row, child) => renderChild(bp.id, child)}
+                    canGroup={(_srcRowId, srcItemId, destRowId, _destItemId) => {
+                      const src = findChild(bp.children, srcItemId);
+                      const destRow = findRow(bp.children, destRowId);
+                      if (!src || !destRow) return false;
+                      if (!isGroupable(src.kind)) return false;
+                      return destRow.items.every(it => isGroupable(it.kind));
                     }}
-                  </Sortable>
+                  />
                 </BackgroundPlate>
               </SortableItem>
             )}
