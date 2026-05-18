@@ -110,7 +110,7 @@ Views: primary · secondary · tertiary · ghost · text · link. Sizes: 32–72
 Документация: `AlfaBank/Design_system/TitleView.md`
 Реализация: `src/components/TitleView.tsx` → экспорт `TitleView`
 
-Заголовочная зона страницы. Пропы и примеры — в `TitleView.md`.
+Заголовочный компонент с 3 уровнями: xLarge (page-level), Medium (block-level в BackgroundPlate), Small (subsection). Пропы и варианты — в `TitleView.md`.
 
 ---
 
@@ -153,7 +153,23 @@ import { BackgroundPlate, BackgroundPlateView } from '../components/BackgroundPl
 
 Документация: `AlfaBank/Design_system/IsleBlock.md`
 
-Вертикальный степпер процесса. Пример с обёрткой — в `IsleBlock.md`.
+Контейнер в Right-колонке. Виды: навигационный (Steps wrapper) + информационный (TBD).
+
+---
+
+## Status
+
+Документация: `AlfaBank/Design_system/Status.md`
+
+Маркер состояния по `ЭтоБаза :: Статусная модель`. Цвет выбирается через decision tree (палитра 6 цветов: green/orange/blue/purple/red/grey; teal в Альфе не использовать). В Альфе всегда `shape='rounded'`. Полная семантика, лексикон 23 канонических лейблов и 16 правил UX-копи — в `Status.md`.
+
+```tsx
+import { Status } from '@alfalab/core-components/status';
+
+<Status view='muted-alt' color='green' size={20} shape='rounded'>
+  Исполнено
+</Status>
+```
 
 ### Do
 - Читать этот файл перед сборкой любого экрана — здесь все готовые компоненты
