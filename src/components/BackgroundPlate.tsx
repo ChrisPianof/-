@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Skeleton } from '@alfalab/core-components/skeleton';
 import { DevPanelWrapper, type PropSpec, type AddOption } from '@local/devpanel';
 
 export enum BackgroundPlateView {
@@ -43,6 +42,7 @@ function BackgroundPlateContent({ view, showSkeleton, enableHover, children }: B
       style={{
         borderRadius: 'var(--border-radius-16)',
         padding: showSkeleton ? 0 : 'var(--gap-32)',
+        position: 'relative',
         transition: 'box-shadow 0.2s ease, transform 0.2s ease',
         boxShadow: canHover && hovered ? '0 8px 24px rgba(0,0,0,0.12)' : 'none',
         transform: canHover && hovered ? 'translateY(-2px)' : 'none',
@@ -53,14 +53,18 @@ function BackgroundPlateContent({ view, showSkeleton, enableHover, children }: B
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <Skeleton
-        visible={!!showSkeleton}
-        animate={false}
-        style={{ background: 'var(--color-light-base-bg-secondary)' }}
-        borderRadius={16}
-      >
-        {children}
-      </Skeleton>
+      {showSkeleton ? (
+        <div
+          style={{
+            position: 'relative',
+            margin: 4,
+            borderRadius: 'var(--border-radius-12)',
+            background: 'var(--color-light-base-bg-secondary)',
+          }}
+        >
+          <div style={{ visibility: 'hidden' }}>{children}</div>
+        </div>
+      ) : children}
     </div>
   );
 }

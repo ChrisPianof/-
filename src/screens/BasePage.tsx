@@ -217,7 +217,7 @@ const SELECT_SPEC: PropSpec[] = [
 // Date picker всегда занимает половину ширины (block-toggle убран — фикс ширины 50%).
 const DATE_SPEC: PropSpec[] = [
   { name: 'label', label: 'Лейбл', control: 'input' },
-  { name: 'view', label: 'Вид', control: 'cycle', values: ['date', 'date-time', 'date-range', 'time', 'month'] },
+  { name: 'view', label: 'Вид', control: 'cycle', values: ['date', 'date-time', 'date-range', 'time'] },
   { name: 'size', label: 'Размер', control: 'cycle', values: ['48', '56', '64', '72'] },
   { name: 'picker', label: 'Календарь-пикер', control: 'toggle', default: true },
   { name: 'disabled', label: 'Отключён', control: 'toggle', default: true },
@@ -558,11 +558,17 @@ export default function BasePage() {
             value: dateValue,
             onChange: (_date: Date | null, valueStr: string) => setDateValue(valueStr),
           };
+          // UniversalDateInputDesktop = discriminated union по view: 'time' не принимает picker,
+          // а 'date'/'date-time'/'date-range' принимает. При runtime ветка выбирается по p.picker;
+          // TS-сужение здесь не делаем — кастуем агрессивно, поведение корректно.
+          const DateInput = UniversalDateInputDesktop as unknown as React.ComponentType<Record<string, unknown>>;
+          const view = p.view;
+          const isTime = view === 'time';
           return (
             <div style={{ width: '50%' }}>
-              {p.picker
-                ? <UniversalDateInputDesktop view="date" picker Calendar={Calendar} {...commonProps} />
-                : <UniversalDateInputDesktop view="date" {...commonProps} />}
+              {p.picker && !isTime
+                ? <DateInput view={view} picker Calendar={Calendar} {...commonProps} />
+                : <DateInput view={view} {...commonProps} />}
             </div>
           );
         }}

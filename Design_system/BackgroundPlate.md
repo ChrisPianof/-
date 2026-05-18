@@ -205,7 +205,11 @@ import { BackgroundPlate, BackgroundPlateView } from '../components/BackgroundPl
 
 Пропы:
 - `view: BackgroundPlateView` — Primary · Secondary · Colored · Dropzone · Border
-- `showSkeleton?: boolean` — оборачивает children в `<Skeleton visible animate={false}>` (`@alfalab/core-components/skeleton`). Skeleton сам берёт размер от children и подменяет их на сплошную статичную плашку цвета `--skeleton-default-color` = `neutral-translucent/100` (`#2637580F`, 6%) — совпадает с Figma placeholder. При `animate=true` Skeleton использовал бы `neutral-translucent/300` (10%) — темнее, мигающий. Высота плейта **не меняется**. При `showSkeleton=true` плейт получает `padding: 0` + `overflow: hidden` — скелетон занимает всё пространство до borderRadius.
+- `showSkeleton?: boolean` — заменяет children на `<div>` с серым фоном и `border-radius: 12` (Level 2 corner radius). Соответствует loading-стейту из Figma «Сценарии» (file `pczuwshD4kyGcqq089R4WO`, node `12015:78234` — `SkeletonBody`). Спецификация:
+  - Плейт `padding: 0` (скелетон-блок прижимается к краям) + `margin: 4` на скелетон-блоке → виден 4px-зазор по периметру где просвечивает плейт (radius 16) с фоном страницы (`#F2F3F5`).
+  - Скелетон-блок: `border-radius: 12`, `background: var(--color-light-base-bg-secondary)` = `#F2F3F5` (видимый серый, совпадает с фоном страницы и тем, что видно в уголочках). Note: Figma токен `neutral-translucent/100` (`#2637580F`, 6% navy) даёт визуальный эффект `#F2F3F5` только при наложении на серый фон страницы; в коде Skeleton накладывался на белый плейт → невидимо. Поэтому ставим итоговый цвет напрямую через `base-bg-secondary`.
+  - Размер скелетона сохраняется по children (визуально скрытые через `visibility: hidden`, но держат высоту/ширину) — высота плейта не меняется относительно реального content.
+  - Не используется `Skeleton` из core-components — для loading-стейта в Альфе важен фиксированный цвет, без animate-фазы (которая даёт `neutral-translucent/300`).
 - `enableHover?: boolean` — анимация подъёма при наведении (отключена для Border)
 
 ## Пропсы в DevPanel
