@@ -10,10 +10,10 @@
 |---|---|---|---|---|
 | **xLarge** | 40/48 | `<TitleView view='large' />` | Page heading. Обязателен на каждой странице | Max 700px → перенос на 2-ю строку. Max 2 строки → многоточие |
 | **Large** | 30/36 | `<TitleView view='medium' />` | TBD (O-1) | TBD (O-2) |
-| **Medium** | 22/26 | `<Title view='small' />` напрямую | Один на BgPlate = один на смысловой блок. Только в Left | Max = ширина Left блока → перенос на 2-ю строку. Max 2 строки → многоточие |
-| **Small** | 18/22 | `<Title view='xsmall' />` напрямую | В IsleBlock — один Small. В BgPlate — сколько угодно (subsequent заголовки в блоке) | Max = ширина Left блока → перенос на 2-ю строку. Max 2 строки → многоточие |
+| **Medium** | 22/26 | `<TitleView view='small' />` | Один на BgPlate = один на смысловой блок. Только в Left | Max = ширина Left блока → перенос на 2-ю строку. Max 2 строки → многоточие |
+| **Small** | 18/22 | `<TitleView view='xsmall' />` | В IsleBlock — один Small. В BgPlate — сколько угодно (subsequent заголовки в блоке) | Max = ширина Left блока → перенос на 2-ю строку. Max 2 строки → многоточие |
 
-TitleView нужен только для xLarge/Large — там сложные слоты (statusLabel/titleStatusProps/buttonsGroup/filterCompanySelect). Для Medium/Small достаточно `Title` из `@alfalab/core-components/typography/title` + опционально `Text` под ним для subtitle.
+Все 4 уровня покрываются одним компонентом `TitleView`. На page-уровне (xLarge/Large) доступны сложные слоты (statusLabel/titleStatusProps/buttonsGroup/filterCompanySelect/titleAddon/rightAddon). На block-уровне (Medium/Small, внутри BgPlate) — урезанный набор: `leftAddon` / `rightAddon` / `subtitle` / `showSkeleton`. Разница достигается через два DevPanel-spec (см. ниже), сам компонент один.
 
 ## Использование TitleView (xLarge / Large)
 
@@ -37,9 +37,11 @@ import { TitleView } from '../components/TitleView';
 | Prop | Тип | Поведение |
 |---|---|---|
 | `heading` | `string` | required — основной заголовок |
-| `view` | `'medium' \| 'large' \| 'xLarge'` | размер. `'large'` = DS xLarge, `'medium'` = DS Large |
+| `view` | `'xsmall' \| 'small' \| 'medium' \| 'large' \| 'xLarge'` | размер. Маппинг prop → DS: `'large'` = DS xLarge, `'medium'` = DS Large, `'small'` = DS Medium, `'xsmall'` = DS Small. `'xLarge'` (prop) — вне DS-иерархии, мапится в Title `'xlarge'` (54/64) |
+| `leftAddon` | `ReactNode` | контент слева от текста (иконка). Используется на block-уровне (Medium/Small) внутри BgPlate |
 | `subtitle` | `string` | подзаголовок, 8px от Title |
-| `statusLabel` | `string` | пилюля над заголовком — это компонент `Status` (`@alfalab/core-components/status`). **Все правила по статусам — в [Status.md](Status.md)**: палитра 6 цветов (green/orange/red/blue/grey/purple — teal не использовать), 23 канонических лейбла, decision tree выбора цвета, 16 правил UX-копи и анти-лексикон. В контексте TitleView → `size=24`, `view='contrast'`, `shape='rounded'`. API передачи цвета — TBD (сейчас в коде хардкод зелёного). |
+| `statusLabel` | `string` | текст пилюли над заголовком — это компонент `Status` (`@alfalab/core-components/status`). **Все правила по статусам — в [Status.md](Status.md)**: палитра 6 цветов, 23 канонических лейбла, decision tree выбора цвета, 16 правил UX-копи и анти-лексикон. В контексте TitleView хардкод `size=24`, `view='contrast'`, `shape='rounded'`, `uppercase=true`. |
+| `statusColor` | `'green' \| 'orange' \| 'red' \| 'blue' \| 'grey' \| 'purple'` | цвет пилюли. Default `'green'`. Выбирать через decision tree из `Status.md`, не «по красоте». `teal` не использовать (не в палитре Альфы). |
 | `titleAddon` | `ReactNode` | контент справа от текста |
 | `rightAddon` | `ReactNode` | контент у правого края строки |
 | `filterCompanySelectProps` | `{ options, selected, placeholder? }` | селектор компании (холдинг-режим) |
@@ -54,6 +56,7 @@ import { TitleView } from '../components/TitleView';
 | Проп | Метка | Контрол | Значения |
 |------|-------|---------|----------|
 | statusLabel | Статус-бейдж | toggle+input | "Одобрено" (лейбл из канонического списка — см. [Status.md](Status.md)) |
+| statusColor | Цвет статуса | cycle | Approve → Attention → Action → Process → Error, Risk → Neutral. Семантические имена из артборда «Алгоритм выбора цвета» (см. [Status.md](Status.md) §«Алгоритм выбора цвета»). В DevPanel-стейте хранится `statusColorLabel`, маппится в `statusColor` через `STATUS_LABEL_TO_COLOR` |
 | heading | Заголовок | input | "Заголовок страницы" |
 | view | Размер | cycle | medium → large → xLarge |
 | titleAddon | Доп. элемент | node | — |
@@ -75,11 +78,32 @@ import { TitleView } from '../components/TitleView';
 **Состав слотов:**
 - `button1` → `ButtonDesktop view='primary' size=56` (основное действие)
 - `button2`, `button3` → `ButtonDesktop view='secondary' size=56`
-- `button4` → `IconButtonDesktop view='secondary' size=56 icon=DotsHorizontalMIcon` (square 56×56, не растягивается под контент) + `Popover` (`zIndex` ≥ 10000, чтобы быть над DevPanel) со списком дополнительных действий (overflow-меню). У Popover нет border-radius на `.popover__inner` — добавляется через `src/corp-overrides.css` (`[class*='popover__inner']`)
+- `button4` → `ButtonDesktop view='secondary' size=56` с `DotsHorizontalMIcon` (20×20) в children + inline `style={{ width: 56, minWidth: 56, paddingLeft: 0, paddingRight: 0 }}` чтобы получить квадрат 56×56 с серой заливкой (`IconButtonDesktop` не подходит — его view'ы задают только цвет иконки, фона нет ни у одной). + `Popover` (`zIndex` ≥ 10000, чтобы быть над DevPanel) со списком дополнительных действий (overflow-меню). У Popover нет border-radius на `.popover__inner` — добавляется через `src/corp-overrides.css` (`[class*='popover__inner']`)
 
 **Правило:** максимум 4 кнопки в `buttonsGroup`. При необходимости >3 действий — четвёртая всегда overflow (⋯), остальное прячется в меню.
 
-## Использование Title напрямую (Medium / Small)
+## Пропсы в DevPanel — BgPlate-контекст (Medium / Small)
+
+Внутри BackgroundPlate TitleView рендерится в block-уровне (DS Medium 22/26 или Small 18/22). В picker'е `+` всегда **один пункт** «TitleView» — добавляет инстанс с дефолтом `view='small'` (DS Medium). Переключение Medium↔Small — внутри панели через cycle `Размер`.
+
+Иконки **по дефолту выключены** — пользователь включает через toggle при необходимости.
+
+| Проп | Метка | Контрол | Значения |
+|------|-------|---------|----------|
+| heading | Заголовок | input | "Заголовок секции" |
+| view | Размер | cycle | small (DS Medium 22/26) → xsmall (DS Small 18/22) |
+| leftAddon | Иконка слева | node | default off; включение → `<DiamondsSIcon 20×20 />` |
+| rightAddon | Иконка справа | node | default off; включение → `<DotsHorizontalMIcon 20×20 />` |
+| subtitle | Подпись | toggle+input | default off; "Подпись" |
+| showSkeleton | Скелетон | toggle | — |
+
+`statusLabel` / `titleStatusProps` / `buttonsGroup` / `filterCompanySelectProps` / `titleAddon` / `rightAddon` (как «page-level» слот в шапке xLarge/Large) — на block-уровне **не используются** (page-level слоты), не входят в spec.
+
+В state экрана хранится только `blockTitleIds: number[]` (через `localStorage`); `view` — часть DevPanel-overrides (внутри панели, не persistent через перезагрузку).
+
+## Раньше: Title напрямую (deprecated)
+
+До унификации Medium/Small рендерились через `<Title view='small'/'xsmall' />` напрямую. Теперь не использовать — все 4 уровня идут через `TitleView`.
 
 ```tsx
 import { Title } from '@alfalab/core-components/typography/title';

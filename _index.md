@@ -10,6 +10,7 @@ React-прототип на @alfalab/core-components (Vite + TS).
 ## Дизайн-система
 
 - [Design_system/_index.md](Design_system/_index.md) — индекс дизайн-системы (все компоненты, токены, правила)
+- Локальные .fig паттерны и команды Google Drive («Открой Гугл диск Альфа» и др.) → см. Design_system/_index.md, секция «Источники правил»
 
 ## Код
 

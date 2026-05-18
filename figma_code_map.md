@@ -15,8 +15,8 @@
 | «Sidebar» / «Левая навигация» | `Sidebar.md` | `src/components/Sidebar.tsx` | `src/App.tsx` → `PageLayout` | ✓ | 248px фикс, vh |
 | «Header» (страничный) | `Header.md` | `src/components/Header.tsx` | `src/App.tsx` → `PageLayout` | ✓ | Default + showBack варианты |
 | `Паттерн :: TitleView` (АБ · MobileWeb) / «Header-System» / xLarge | `TitleView.md` | `src/components/TitleView.tsx` (xLarge mode) | `src/screens/BasePage.tsx` | ✓ | Page-level, первый в CorporateContent |
-| `TitleView :: Medium` / «Title 22-26» | `TitleView.md` (Medium) | `src/components/TitleView.tsx` (`view='large'` — гипотеза) | TBD — не применён в src/ | ~ | Block-level в BgPlate. Маппинг view ↔ Guidelines — TBD |
-| `TitleView :: Small` / «Title 18-22» | `TitleView.md` (Small) | `src/components/TitleView.tsx` (`view='medium'` — гипотеза) | TBD — не применён в src/ | ~ | Subsection-level. Маппинг view ↔ Guidelines — TBD |
+| `TitleView :: Medium` / «Title 22-26» | `TitleView.md` (Medium) | `src/components/TitleView.tsx` (`view='small'`) | `src/screens/BasePage.tsx` (внутри BgPlate, picker «TitleView (Medium)») | ✓ | Block-level в BgPlate. Один на смысловой блок. Пропы урезаны до 4 (см. TitleView.md → «BgPlate-контекст») |
+| `TitleView :: Small` / «Title 18-22» | `TitleView.md` (Small) | `src/components/TitleView.tsx` (`view='xsmall'`) | `src/screens/BasePage.tsx` (внутри BgPlate, picker «TitleView (Small)») | ✓ | Subsection-level. В BgPlate — сколько угодно, в IsleBlock — один |
 | «Подложка» (TBD: точное Figma-имя) | `BackgroundPlate.md` | `src/components/BackgroundPlate.tsx` | `src/screens/BasePage.tsx` | ~ | 5 view вариантов (Primary/Secondary/Colored/Dropzone/Border) |
 | `Паттерн :: Островки в Альфа-Бизнес` / «Островок» | `IsleBlock.md` | `@alfalab/core-components/steps` → `Steps` (нав.); custom div-обёртка (инфо) | `src/screens/BasePage.tsx` | ✓ | Карточка-обёртка вручную. Corp: `@alfalab/.../steps/corp.css` |
 
@@ -30,6 +30,7 @@
 | TabsSecondary (теги) | `TabsSecondary.md` | `@alfalab/core-components/tabs` + `SecondaryTabListDesktop` | `src/screens/BasePage.tsx` | ✓ | Внутри BgPlate. Дефолт: `size='xs'`, `tagView='filled'` |
 | «Поле ввода» / Input | `Input.md` | `@alfalab/core-components/input/desktop` → `InputDesktop` | `src/screens/BasePage.tsx` | ✓ | Нестандартная `onChange` сигнатура |
 | «Выпадающий список» / Select | `Select.md` | `@alfalab/core-components/select/desktop` → `SelectDesktop` | `src/screens/BasePage.tsx` | ✓ | OptionShape. Corp.css отдельно |
+| `[D] UniversalDateInput` / «calendar» / «Календарь» / «Дата» / «date» | `UniversalDateInput.md` | `@alfalab/core-components/universal-date-input/desktop` → `UniversalDateInputDesktop` (+ `Calendar` из `/calendar`) | TBD — не применён в src/ | ✓ | 5 view (date/date-time/date-range/time/month). picker=true требует Calendar. Corp.css × 2. Owner: @vbarkalov. Паспорт Web::Core node `507:25760` |
 
 ---
 

@@ -22,7 +22,8 @@ import { InputDesktop } from '@alfalab/core-components/input/desktop';
 - `defaultValue?: string` — uncontrolled
 - `label?: ReactNode` — лейбл
 - `labelView?: 'inner' | 'outer'` — inner (плавающий, default) · outer (над полем)
-- `size?: 40 | 48 | 56 | 64` — высота, default `48`
+- `size?: 40 | 48 | 56 | 64` — высота. **AlfaBank-проект: default `56`** (правило десктопных форм). У пакета default `48`, но в этом проекте 48 не использовать без явной причины.
+- `block?: boolean` — **в проекте AlfaBank**: `true` → ширина 100% контейнера (BgPlate), `false` → ровно 50%. Компонент внутри всегда рендерится с `block=true`; полуширина задаётся обёрткой `<div style={{ width: '50%' }}>` в `BasePage.tsx`. Семантика DevPanel-проп `block` — на 100% vs 50%, не на natural-width пакета.
 - `block?: boolean` — 100% ширины
 - `type?: 'text' | 'number' | 'email' | 'password' | 'tel' | 'money'` — default `'text'`
 - `clear?: boolean` — крестик очистки (виден только когда поле заполнено)

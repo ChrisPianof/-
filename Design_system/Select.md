@@ -43,7 +43,8 @@ type OptionShape = {
 - `label?: ReactNode` — лейбл
 - `labelView?: 'inner' | 'outer'` — inner (плавающий, default) · outer (над полем)
 - `placeholder?: string` — плейсхолдер
-- `size?: 40 | 48 | 56 | 64 | 72` — высота поля, default `48`
+- `size?: 40 | 48 | 56 | 64 | 72` — высота поля. **AlfaBank-проект: default `56`** (правило десктопных форм). У пакета default `48`, но в этом проекте 48 не использовать без явной причины.
+- `block?: boolean` — **в проекте AlfaBank**: `true` → ширина 100% контейнера (BgPlate), `false` → ровно 50%. Компонент внутри всегда рендерится с `block=true`; полуширина задаётся обёрткой `<div style={{ width: '50%' }}>` в `BasePage.tsx`. Семантика DevPanel-проп `block` — на 100% vs 50%, не на natural-width пакета.
 - `block?: boolean` — 100% ширины
 - `multiple?: boolean` — множественный выбор; `selected` становится массивом
 - `disabled?: boolean`

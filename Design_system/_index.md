@@ -14,6 +14,8 @@ TitleView.md — документация компонента TitleView: про
 TabsView.md — документация компонента Tabs: пропы, Tab, gotcha с dedupe
 TabsSecondary.md — Secondary-вариант Tabs (теги): size, tagView, tagShape, corp-тема, паттерн обёртки
 Input.md — документация компонента Input: пропы, onChange-сигнатура, corp-тема
+Select.md — документация SelectDesktop: OptionShape, нестандартная onChange, corp-тема
+UniversalDateInput.md — документация UniversalDateInputDesktop: 5 view (date/date-time/date-range/time/month), picker + Calendar, два corp.css
 PageStructure.md — иерархия зон страницы, отступы, порядок зон
 Status.md — компонент Status: палитра 6 цветов, лексикон 23 лейбла, decision tree выбора цвета, 16 правил UX-копи. Источник правил для слота `statusLabel` в TitleView и любых статус-пилюль на странице.
 DevPanel — **глобальная папка**, лежит в `/Desktop/Claude/Tools/DevPanel/`. Читать `_index.md` — операционные правила: типы контролов, принцип работы, формат секции в файлах компонентов.
@@ -25,6 +27,8 @@ Tokens.md — токены и стили: цвета, отступы, скруг
 ## Утилиты
 
 src/utils/useBreakpoint.ts — хук на основе `useMatchMedia` из `@alfalab/core-components/mq`. Определяет текущее устройство (mobile/tablet/desktop) по токенам из `mq.json` пакета. Использовать для адаптации сетки.
+
+src/components/Sortable.tsx — обёртка над `@dnd-kit/sortable` (транзитивная зависимость `@alfalab/core-components/sortable-list`). Перетаскивание элементов внутри одного списка, активация ≥8px движения мыши (клики по input/select/tabs не ломаются). Использовать когда нужен reorder без UI-обёртки SortableList пакета (которая навязывает ячейки с фоном/паддингом). API: `<Sortable items onReorder>` + `<SortableItem id>` для каждого элемента. BasePage использует на 4 уровнях: TitleView, BackgroundPlate, дети BackgroundPlate (смешанный список title/tabs/input/select), IsleBlock.
 
 ## Структура src/
 
@@ -116,7 +120,8 @@ import { Input } from '@alfalab/core-components/input';
 - ✅ Раздел __ Правила построения форм.fig → связан с Figma-ссылками выше
 - ✅ ЭтоБаза __ Статусная модель.fig → связан с Status.md
 - Web __ Corp Components.fig → библиотека Web/Corp-компонентов (AppCorp), 113 МБ
-- Web __ Core.fig → паспорт компонента Status (Web :: Core, file odjhWXuBVUgLfAnUI1PtMT, node 443:12744)
+- Web __ Core.fig → паспорта компонентов Web :: Core (file odjhWXuBVUgLfAnUI1PtMT): Status (node 443:12744), UniversalDateInput (node 507:25760). Owner всех — @vbarkalov
+- Компонент __ UniversalDateInput.fig → опциональный отдельный экспорт (TBD: не нужен пока есть карточка в Web __ Core.fig). Использование в паттерне — Figma node `40000006:39557` в файле «Сценарии»
 
 Команды Google Drive (мэтч фраза → действие, расширяется по мере появления новых):
 - «Открой Гугл диск Альфа» → перейти к папке выше, показать содержимое, при необходимости открыть конкретный .fig

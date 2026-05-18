@@ -81,6 +81,31 @@ const options = [
 
 ---
 
+## UniversalDateInput
+
+Документация: `AlfaBank/Design_system/UniversalDateInput.md`
+
+```tsx
+import { UniversalDateInputDesktop } from '@alfalab/core-components/universal-date-input/desktop';
+import { Calendar } from '@alfalab/core-components/calendar';
+import '@alfalab/core-components-themes/universal-date-input/corp.css';
+import '@alfalab/core-components-themes/calendar/corp.css';
+
+<UniversalDateInputDesktop
+  label="Дата контракта"
+  view="date"
+  picker
+  Calendar={Calendar}
+  value={value}
+  onChange={(_date, payload) => setValue(payload.value)}
+  block
+/>
+```
+
+5 view: `date` · `date-time` · `date-range` · `time` · `month`. При `picker=true` обязателен проп `Calendar`.
+
+---
+
 ## Button
 
 Документация: `AlfaBank/Design_system/Buttons.md`
@@ -110,7 +135,7 @@ Views: primary · secondary · tertiary · ghost · text · link. Sizes: 32–72
 Документация: `AlfaBank/Design_system/TitleView.md`
 Реализация: `src/components/TitleView.tsx` → экспорт `TitleView`
 
-Заголовочный компонент с 3 уровнями: xLarge (page-level), Medium (block-level в BackgroundPlate), Small (subsection). Пропы и варианты — в `TitleView.md`.
+Заголовочный компонент с **4 уровнями** иерархии в одном компоненте: xLarge / Large (page-level, полный набор слотов) и Medium / Small (block-level внутри BgPlate, урезанный до `heading`/`leftAddon`/`rightAddon`/`subtitle`/`showSkeleton`). Мапинг `view` → DS и два варианта DevPanel-spec — в `TitleView.md`.
 
 ---
 

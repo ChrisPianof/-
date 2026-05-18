@@ -16,7 +16,7 @@ function PageLayout({ children, activeItem, showBack }: {
       <Sidebar activeItem={activeItem} />
       <div style={{ marginLeft: 248, flex: 1, display: 'flex', flexDirection: 'column' }}>
         <Header showBack={showBack} />
-        <main style={{ marginTop: 56, padding: 'var(--gap-40) var(--gap-56) var(--gap-64)' }}>
+        <main style={{ marginTop: 'var(--gap-56)', padding: 'var(--gap-40) 52px var(--gap-64)' }}>
           {children}
         </main>
       </div>

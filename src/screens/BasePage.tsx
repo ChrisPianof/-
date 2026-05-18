@@ -3,6 +3,10 @@ import { Steps } from '@alfalab/core-components/steps';
 import { InputDesktop } from '@alfalab/core-components/input/desktop';
 import { SelectDesktop } from '@alfalab/core-components/select/desktop';
 import '@alfalab/core-components-themes/select/corp.css';
+import { UniversalDateInputDesktop } from '@alfalab/core-components/universal-date-input/desktop';
+import { Calendar } from '@alfalab/core-components/calendar';
+import '@alfalab/core-components-themes/universal-date-input/corp.css';
+import '@alfalab/core-components-themes/calendar/corp.css';
 import { TitleView, type TitleViewProps, STATUS_COLOR_LABELS, STATUS_LABEL_TO_COLOR, type StatusColorLabel } from '../components/TitleView';
 import { useBreakpoint } from '../utils/useBreakpoint';
 import { BackgroundPlate, BackgroundPlateView } from '../components/BackgroundPlate';
@@ -18,9 +22,9 @@ import { StatusBadge } from '@alfalab/core-components/status-badge';
 import { Link } from '@alfalab/core-components/link';
 import { DiamondsSIcon } from '@alfalab/icons-glyph/DiamondsSIcon';
 import { DotsHorizontalMIcon } from '@alfalab/icons-glyph/DotsHorizontalMIcon';
-import { DevPanelWrapper, type PropSpec, type AddOption } from '@local/devpanel';
+import { DevPanelWrapper, EditableText, type PropSpec, type AddOption } from '@local/devpanel';
 
-type ChildKind = 'title' | 'tabs' | 'input' | 'select';
+type ChildKind = 'title' | 'tabs' | 'input' | 'select' | 'date';
 type BgChild = { id: number; kind: ChildKind };
 type BgPlateItem = { id: number; children: BgChild[] };
 type IdItem = { id: number };
@@ -45,7 +49,7 @@ function usePersisted<T>(key: string, initial: T, validate: (v: unknown) => v is
 const isIdItemArray = (v: unknown): v is IdItem[] =>
   Array.isArray(v) && v.every(it => it && typeof (it as IdItem).id === 'number');
 
-const CHILD_KINDS: ChildKind[] = ['title', 'tabs', 'input', 'select'];
+const CHILD_KINDS: ChildKind[] = ['title', 'tabs', 'input', 'select', 'date'];
 const isBgPlatesArray = (v: unknown): v is BgPlateItem[] =>
   Array.isArray(v) && v.every(it =>
     it && typeof (it as BgPlateItem).id === 'number' &&
@@ -56,9 +60,13 @@ const isBgPlatesArray = (v: unknown): v is BgPlateItem[] =>
 
 const nextId = (used: number[]) => (used.length > 0 ? Math.max(...used) + 1 : 0);
 
-type TabsProps = { size: string; tagView: string; tagShape: string };
+type TabsProps = { size: string; tagView: string; tab1: string; tab2: string; tab3: string };
+const PX_TO_TAB_SIZE: Record<string, 'xxs' | 'xs' | 's' | 'm' | 'l' | 'xl'> = {
+  '32': 'xxs', '40': 'xs', '48': 's', '56': 'm', '64': 'l', '72': 'xl',
+};
 type InputProps = { label: string; labelView: string; size: string; block: boolean; disabled?: boolean; error?: string | boolean; success?: boolean; hint?: string; clear?: boolean };
 type SelectProps = { label: string; labelView: string; size: string; block: boolean; multiple?: boolean; disabled?: boolean; showSearch?: boolean; error?: string | boolean; hint?: string; clear?: boolean };
+type DateProps = { label: string; labelView: string; size: string; view: string; picker: boolean; block: boolean; disabled?: boolean; error?: string | boolean; hint?: string; autoCorrection?: boolean };
 
 const titleAddon = (
   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--gap-8)' }}>
@@ -113,9 +121,11 @@ const TITLEVIEW_SPEC: PropSpec[] = [
 ];
 
 const TABS_SPEC: PropSpec[] = [
-  { name: 'size', label: 'Размер', control: 'cycle', values: ['xxs', 'xs', 's', 'm', 'l', 'xl'] },
+  { name: 'size', label: 'Размер', control: 'cycle', values: ['32', '40', '48', '56', '64', '72'] },
   { name: 'tagView', label: 'Вид тега', control: 'cycle', values: ['outlined', 'filled', 'transparent'] },
-  { name: 'tagShape', label: 'Форма тега', control: 'cycle', values: ['rounded', 'rectangular'] },
+  { name: 'tab1', label: 'Таб 1', control: 'input' },
+  { name: 'tab2', label: 'Таб 2', control: 'input' },
+  { name: 'tab3', label: 'Таб 3', control: 'input' },
 ];
 
 const INPUT_SPEC: PropSpec[] = [
@@ -143,6 +153,22 @@ const SELECT_SPEC: PropSpec[] = [
   { name: 'clear', label: 'Кнопка сброса', control: 'toggle', default: true },
 ];
 
+const DATE_SPEC: PropSpec[] = [
+  { name: 'label', label: 'Лейбл', control: 'input' },
+  { name: 'view', label: 'Вид', control: 'cycle', values: ['date', 'date-time', 'date-range', 'time', 'month'] },
+  { name: 'size', label: 'Размер', control: 'cycle', values: ['48', '56', '64', '72'] },
+  { name: 'picker', label: 'Календарь-пикер', control: 'toggle', default: true },
+  { name: 'block', label: 'На всю ширину', control: 'toggle', default: true },
+  { name: 'disabled', label: 'Отключён', control: 'toggle', default: true },
+  { name: 'error', label: 'Ошибка', control: 'toggle+input', default: 'Неверный формат' },
+  { name: 'hint', label: 'Подсказка', control: 'toggle+input', default: 'ДД.ММ.ГГГГ' },
+  { name: 'autoCorrection', label: 'Автокоррекция', control: 'toggle', default: true },
+];
+
+const TYPE_LABELS: Record<string, ChildKind> = { Select: 'select', UniversalDateInput: 'date' };
+const KIND_TO_TYPE_LABEL: Partial<Record<ChildKind, string>> = { select: 'Select', date: 'UniversalDateInput' };
+const TYPE_SWAP_OPTIONS = ['Select', 'UniversalDateInput'];
+
 const STEPS_SPEC: PropSpec[] = [
   { name: 'activeStep', label: 'Активный шаг', control: 'number' },
   { name: 'ordered', label: 'Нумерация', control: 'toggle', default: true },
@@ -163,7 +189,7 @@ const BLOCK_TITLE_SPEC: PropSpec[] = [
 
 const childGap = (kind: ChildKind, prevKind: ChildKind | null): string => {
   if (prevKind === null) return '0';
-  if (kind === 'input' || kind === 'select') return 'var(--gap-24)';
+  if (kind === 'input' || kind === 'select' || kind === 'date') return 'var(--gap-24)';
   return 'var(--gap-20)';
 };
 
@@ -173,6 +199,7 @@ export default function BasePage() {
   const [activeTab, setActiveTab] = useState('description');
   const [inputValue, setInputValue] = useState('');
   const [selectedOptions, setSelectedOptions] = useState<{ key: string; content?: string }[]>([]);
+  const [dateValue, setDateValue] = useState('');
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -213,6 +240,15 @@ export default function BasePage() {
     ));
   const reorderChildren = (bgId: number) => (next: BgChild[]) =>
     setBgPlates(prev => prev.map(bp => bp.id !== bgId ? bp : { ...bp, children: next }));
+  const swapChildKind = (bgId: number, childId: number) => (nextLabel: string) => {
+    const nextKind = TYPE_LABELS[nextLabel];
+    if (!nextKind) return;
+    setBgPlates(prev => prev.map(bp =>
+      bp.id !== bgId ? bp : { ...bp, children: bp.children.map(c =>
+        c.id !== childId ? c : { ...c, kind: nextKind },
+      ) },
+    ));
+  };
 
   const titleViewAddOptions: AddOption[] = [
     { label: 'TitleView', onSelect: addTitleView },
@@ -222,6 +258,7 @@ export default function BasePage() {
     { label: 'TabsSecondary', onSelect: addChildTo(bgId, 'tabs') },
     { label: 'Input', onSelect: addChildTo(bgId, 'input') },
     { label: 'Select', onSelect: addChildTo(bgId, 'select') },
+    { label: 'UniversalDateInput', onSelect: addChildTo(bgId, 'date') },
   ];
   const isleBlockAddOptions: AddOption[] = [
     { label: 'IsleBlock', onSelect: addIsleBlock },
@@ -274,13 +311,17 @@ export default function BasePage() {
         menuItem1: 'Дублировать',
         menuItem2: 'Отменить',
       }}
-      render={({ button1, button2, button3, button4, menuItem1, menuItem2, menuItem3, statusColorLabel, ...rest }) => {
+      render={({ button1, button2, button3, button4, menuItem1, menuItem2, menuItem3, statusColorLabel, ...rest }, ctx) => {
         const statusColor = statusColorLabel ? STATUS_LABEL_TO_COLOR[statusColorLabel] : undefined;
-        const menuItems = [menuItem1, menuItem2, menuItem3].filter((s): s is string => Boolean(s));
+        const menuItems: { key: string; label: string }[] = [
+          { key: 'menuItem1', label: menuItem1 ?? '' },
+          { key: 'menuItem2', label: menuItem2 ?? '' },
+          { key: 'menuItem3', label: menuItem3 ?? '' },
+        ].filter(m => Boolean(m.label));
         const buttons = [
-          button1 && <Button key="1" view="primary" size={56}>{button1}</Button>,
-          button2 && <Button key="2" view="secondary" size={56}>{button2}</Button>,
-          button3 && <Button key="3" view="secondary" size={56}>{button3}</Button>,
+          button1 && <Button key="1" view="primary" size={56}><EditableText value={button1} onChange={v => ctx.setProp('button1', v)} /></Button>,
+          button2 && <Button key="2" view="secondary" size={56}><EditableText value={button2} onChange={v => ctx.setProp('button2', v)} /></Button>,
+          button3 && <Button key="3" view="secondary" size={56}><EditableText value={button3} onChange={v => ctx.setProp('button3', v)} /></Button>,
           button4 && (
             <Button
               key="4"
@@ -313,9 +354,9 @@ export default function BasePage() {
                   minWidth: 220,
                 }}
               >
-                {menuItems.map((label, i) => (
+                {menuItems.map(({ label, key }) => (
                   <button
-                    key={`${i}-${label}`}
+                    key={key}
                     type="button"
                     onClick={() => setMenuOpen(false)}
                     style={{
@@ -330,14 +371,21 @@ export default function BasePage() {
                       cursor: 'pointer',
                     }}
                   >
-                    {label}
+                    <EditableText value={label} onChange={v => ctx.setProp(key, v)} />
                   </button>
                 ))}
               </div>
             </Popover>
           </>
         ) : undefined;
-        return <TitleView {...rest} statusColor={statusColor} buttonsGroup={buttonsGroup} />;
+        return <TitleView
+          {...rest}
+          statusColor={statusColor}
+          buttonsGroup={buttonsGroup}
+          onHeadingChange={v => ctx.setProp('heading', v)}
+          onSubtitleChange={v => ctx.setProp('subtitle', v)}
+          onStatusLabelChange={v => ctx.setProp('statusLabel', v)}
+        />;
       }}
     />
   );
@@ -354,10 +402,14 @@ export default function BasePage() {
         baseProps={{
           heading: 'Заголовок секции',
           view: 'small',
-          leftAddon: BLOCK_TITLE_LEFT_ICON,
-          rightAddon: BLOCK_TITLE_RIGHT_ICON,
         }}
-        render={(p) => <TitleView {...p} />}
+        render={(p, ctx) => (
+          <TitleView
+            {...p}
+            onHeadingChange={v => ctx.setProp('heading', v)}
+            onSubtitleChange={v => ctx.setProp('subtitle', v)}
+          />
+        )}
       />
     );
     if (child.kind === 'tabs') return (
@@ -366,21 +418,21 @@ export default function BasePage() {
         onDelete={onDelete}
         addOptions={addOptions}
         spec={TABS_SPEC}
-        baseProps={{ size: 'xs', tagView: 'filled', tagShape: 'rounded' }}
-        render={(p) => {
+        baseProps={{ size: '40', tagView: 'filled', tab1: 'Описание', tab2: 'Разработчику', tab3: 'Обновления' }}
+        render={(p, ctx) => {
           const DynamicTabList = (props: SecondaryTabListProps) => (
-            <SecondaryTabListDesktop {...props} tagView={p.tagView as 'filled' | 'outlined' | 'transparent'} tagShape={p.tagShape as 'rounded' | 'rectangular'} />
+            <SecondaryTabListDesktop {...props} tagView={p.tagView as 'filled' | 'outlined' | 'transparent'} tagShape="rectangular" />
           );
           return (
             <Tabs
               TabList={DynamicTabList as never}
-              size={p.size as 'xs' | 'xxs' | 's' | 'm' | 'l' | 'xl'}
+              size={PX_TO_TAB_SIZE[p.size] ?? 'xs'}
               selectedId={activeTab}
               onChange={(_, { selectedId }) => setActiveTab(selectedId as string)}
             >
-              <Tab title='Описание' id='description' />
-              <Tab title='Разработчику' id='dev' />
-              <Tab title='Обновления' id='updates' />
+              <Tab title={<EditableText value={p.tab1} onChange={v => ctx.setProp('tab1', v)} />} id='description' />
+              <Tab title={<EditableText value={p.tab2} onChange={v => ctx.setProp('tab2', v)} />} id='dev' />
+              <Tab title={<EditableText value={p.tab3} onChange={v => ctx.setProp('tab3', v)} />} id='updates' />
             </Tabs>
           );
         }}
@@ -392,47 +444,90 @@ export default function BasePage() {
         onDelete={onDelete}
         addOptions={addOptions}
         spec={INPUT_SPEC}
-        baseProps={{ label: 'Название поля', block: true, labelView: 'inner', size: '48' }}
-        render={(p) => (
-          <InputDesktop
-            label={p.label}
-            labelView={p.labelView as 'inner' | 'outer'}
-            size={Number(p.size) as 40 | 48 | 56 | 64}
-            block={p.block}
-            disabled={p.disabled}
-            error={p.error}
-            success={p.success}
-            hint={p.hint}
-            clear={p.clear}
-            value={inputValue}
-            onChange={(_, { value }) => setInputValue(value)}
-          />
+        baseProps={{ label: 'Название поля', block: true, labelView: 'inner', size: '56' }}
+        render={(p, ctx) => (
+          <div style={{ width: p.block ? '100%' : '50%' }}>
+            <InputDesktop
+              label={<EditableText value={p.label} onChange={v => ctx.setProp('label', v)} />}
+              labelView={p.labelView as 'inner' | 'outer'}
+              size={Number(p.size) as 40 | 48 | 56 | 64}
+              block
+              disabled={p.disabled}
+              error={p.error}
+              success={p.success}
+              hint={p.hint}
+              clear={p.clear}
+              value={inputValue}
+              onChange={(_, { value }) => setInputValue(value)}
+            />
+          </div>
         )}
+      />
+    );
+    const typeSwap = {
+      current: KIND_TO_TYPE_LABEL[child.kind] ?? 'Select',
+      options: TYPE_SWAP_OPTIONS,
+      onChange: swapChildKind(bgId, child.id),
+    };
+    if (child.kind === 'date') return (
+      <DevPanelWrapper<DateProps>
+        key="date"
+        title="UniversalDateInput"
+        onDelete={onDelete}
+        addOptions={addOptions}
+        typeSwap={typeSwap}
+        spec={DATE_SPEC}
+        baseProps={{ label: 'Дата контракта', view: 'date', picker: true, block: true, labelView: 'inner', size: '56', autoCorrection: true }}
+        render={(p) => {
+          const commonProps = {
+            label: p.label,
+            labelView: p.labelView as 'inner' | 'outer',
+            size: Number(p.size) as 48 | 56 | 64 | 72,
+            block: true,
+            disabled: p.disabled,
+            error: p.error,
+            hint: p.hint,
+            autoCorrection: p.autoCorrection,
+            value: dateValue,
+            onChange: (_date: Date | null, valueStr: string) => setDateValue(valueStr),
+          };
+          return (
+            <div style={{ width: p.block ? '100%' : '50%' }}>
+              {p.picker
+                ? <UniversalDateInputDesktop view="date" picker Calendar={Calendar} {...commonProps} />
+                : <UniversalDateInputDesktop view="date" {...commonProps} />}
+            </div>
+          );
+        }}
       />
     );
     return (
       <DevPanelWrapper<SelectProps>
+        key="select"
         title="Select"
         onDelete={onDelete}
         addOptions={addOptions}
+        typeSwap={typeSwap}
         spec={SELECT_SPEC}
-        baseProps={{ label: 'Выпадающий список', block: true, multiple: true, labelView: 'inner', size: '48' }}
-        render={(p) => (
-          <SelectDesktop
-            label={p.label}
-            labelView={p.labelView as 'inner' | 'outer'}
-            size={Number(p.size) as 40 | 48 | 56 | 64 | 72}
-            block={p.block}
-            multiple={p.multiple}
-            disabled={p.disabled}
-            showSearch={p.showSearch}
-            error={p.error}
-            hint={p.hint}
-            clear={p.clear}
-            options={selectOptions}
-            selected={selectedOptions}
-            onChange={({ selectedMultiple }) => setSelectedOptions(selectedMultiple as typeof selectedOptions)}
-          />
+        baseProps={{ label: 'Выпадающий список', block: true, multiple: true, labelView: 'inner', size: '56' }}
+        render={(p, ctx) => (
+          <div style={{ width: p.block ? '100%' : '50%' }}>
+            <SelectDesktop
+              label={<EditableText value={p.label} onChange={v => ctx.setProp('label', v)} />}
+              labelView={p.labelView as 'inner' | 'outer'}
+              size={Number(p.size) as 40 | 48 | 56 | 64 | 72}
+              block
+              multiple={p.multiple}
+              disabled={p.disabled}
+              showSearch={p.showSearch}
+              error={p.error}
+              hint={p.hint}
+              clear={p.clear}
+              options={selectOptions}
+              selected={selectedOptions}
+              onChange={({ selectedMultiple }) => setSelectedOptions(selectedMultiple as typeof selectedOptions)}
+            />
+          </div>
         )}
       />
     );

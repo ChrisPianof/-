@@ -32,21 +32,41 @@
 Паддинги и отступы не меняются.
 
 Right
-Фиксированная колонка 400px. Всегда присутствует, содержит только `IsleBlock`.
-Детали → `IsleBlock.md`.
+Опциональная колонка 400px. Может отсутствовать (одноколоночный экран = только Left). Содержит только `IsleBlock` (детали → `IsleBlock.md`).
+Отступ между несколькими IsleBlock: 24px.
+Виды IsleBlock: навигационный (опционален; если присутствует — всегда первый сверху) + информационные.
 
 Left
 Одна или несколько карточек `BackgroundPlate` (детали → `BackgroundPlate.md`).
 Отступ между карточками: 24px.
 
   Компоненты внутри `BackgroundPlate`:
+  - `TitleView` block-уровня — `view='small'` (DS Medium 22/26, один на BgPlate) или `view='xsmall'` (DS Small 18/22, можно несколько). Пропы урезаны до `heading` / `leftAddon` / `rightAddon` / `subtitle` / `showSkeleton`. Детали → `TitleView.md` → «BgPlate-контекст»
   - `TabsSecondary` (детали → `TabsSecondary.md`)
   - `InputDesktop` (`@alfalab/core-components/input/desktop`) — текстовый ввод
   - `SelectDesktop` (`@alfalab/core-components/select/desktop`) — выпадающий список (детали → `Select.md`)
+  - `UniversalDateInputDesktop` (`@alfalab/core-components/universal-date-input/desktop`) — поле даты (детали → `UniversalDateInput.md`)
 
   Отступы между компонентами внутри `BackgroundPlate`:
-  - TabsSecondary → Input/Select: 20px
-  - Input/Select → Input/Select: 24px
+  - TabsSecondary → Input/Select/Date: 20px
+  - Input/Select/Date → Input/Select/Date: 24px
+
+  Поведение самих form-инпутов (default `size`, семантика `block`) — в `.md` соответствующих компонентов (`Input.md`, `Select.md`, `UniversalDateInput.md`).
+
+## Адаптивность
+
+Брейкпоинты системы (из `mq.json`):
+- mobile: max-width 599px (эталонный пример Alfa Guidelines — **375px**)
+- tablet: 600px – 1023px (эталонный пример — **768px**)
+- desktop: min-width 1024px (эталонный пример — **1440px**)
+
+Поведение Body grid:
+- **desktop, tablet** — `Left` 8 cols + `Right` 4 cols (как описано выше)
+- **mobile** — IsleBlock'и (`Right`) уходят ПОД `Left` (вертикальный стек)
+
+Эталонные примеры форм собираются на 3 разрешениях (1440 / 768 / 375). Именование примеров: `🔗 Название формы / Разрешение`.
+
+Применять адаптацию через хук `useBreakpoint` (`src/utils/useBreakpoint.ts`). Хардкодить медиа-запросы запрещено (см. `Tokens.md`).
 
 ### Do
 - Применять фон `base-bg-alt/primary` на корневой обёртке страницы
@@ -57,4 +77,6 @@ Left
 - Don't менять отступы между зонами (32px фиксированные)
 - Don't помещать IsleBlock в Left-колонку — только Right
 - Don't создавать страницы без TitleView
+- Don't ставить навигационный IsleBlock не первым в стеке Right
+- Don't размещать несколько навигационных IsleBlock в Right — максимум один
 

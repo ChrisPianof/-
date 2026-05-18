@@ -1,8 +1,32 @@
 import { useState } from 'react';
 import { Title } from '@alfalab/core-components/typography/title';
 import { Text } from '@alfalab/core-components/typography/text';
+import { Status } from '@alfalab/core-components/status';
 import { DotsHorizontalMIcon } from '@alfalab/icons-glyph/DotsHorizontalMIcon';
+import { EditableText } from '@local/devpanel';
 import type { ReactNode } from 'react';
+
+export const STATUS_COLOR_VALUES = ['green', 'orange', 'red', 'blue', 'grey', 'purple'] as const;
+export type StatusColor = typeof STATUS_COLOR_VALUES[number];
+
+export const STATUS_COLOR_LABELS = [
+  'Approve',
+  'Attention',
+  'Action',
+  'Process',
+  'Error, Risk',
+  'Neutral',
+] as const;
+export type StatusColorLabel = typeof STATUS_COLOR_LABELS[number];
+
+export const STATUS_LABEL_TO_COLOR: Record<StatusColorLabel, StatusColor> = {
+  'Approve':      'green',
+  'Attention':    'orange',
+  'Action':       'blue',
+  'Process':      'purple',
+  'Error, Risk':  'red',
+  'Neutral':      'grey',
+};
 
 function DotsButton() {
   const [hover, setHover] = useState(false);
@@ -31,9 +55,11 @@ const STATUS_COLORS = {
 
 export type TitleViewProps = {
   heading: string;
-  view?: 'medium' | 'large' | 'xLarge';
+  view?: 'xsmall' | 'small' | 'medium' | 'large' | 'xLarge';
   subtitle?: string;
   statusLabel?: string;
+  statusColor?: StatusColor;
+  leftAddon?: ReactNode;
   titleAddon?: ReactNode;
   rightAddon?: ReactNode;
   filterCompanySelectProps?: {
@@ -48,6 +74,13 @@ export type TitleViewProps = {
   };
   buttonsGroup?: ReactNode;
   showSkeleton?: boolean;
+  /** Inline-редактирование heading: при передаче heading становится редактируемым по двойному клику.
+   * Коммит — на blur и Enter, отмена — Esc. Используется в DevPanel-обвязке. */
+  onHeadingChange?: (value: string) => void;
+  /** Inline-редактирование subtitle. Аналогично onHeadingChange. */
+  onSubtitleChange?: (value: string) => void;
+  /** Inline-редактирование statusLabel pill. */
+  onStatusLabelChange?: (value: string) => void;
 };
 
 export function TitleView({
@@ -55,22 +88,77 @@ export function TitleView({
   view = 'large',
   subtitle,
   statusLabel,
+  statusColor = 'green',
+  leftAddon,
   titleAddon,
   rightAddon,
   filterCompanySelectProps,
   titleStatusProps,
   buttonsGroup,
   showSkeleton,
+  onHeadingChange,
+  onSubtitleChange,
+  onStatusLabelChange,
 }: TitleViewProps) {
+  // DS level mapping for prop `view` → Title component view + heading height
+  // 'xLarge' → Title 'xlarge' (54/64, вне DS-иерархии)
+  // 'large'  → Title 'large'  (40/48, DS xLarge — page heading)
+  // 'medium' → Title 'medium' (30/36, DS Large)
+  // 'small'  → Title 'small'  (22/26, DS Medium — внутри BgPlate)
+  // 'xsmall' → Title 'xsmall' (18/22, DS Small — внутри BgPlate / IsleBlock)
+  const titleView = view === 'xLarge' ? 'xlarge' : view;
+  const HEADING_HEIGHTS = { xLarge: 56, large: 48, medium: 36, small: 26, xsmall: 22 } as const;
   if (showSkeleton) {
+    const headingHeight = HEADING_HEIGHTS[view];
+    const block = (w: number | string, h: number) => ({
+      width: w, height: h,
+      borderRadius: 'var(--border-radius-8)',
+      background: 'rgba(15,25,55,0.08)',
+    });
+
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
-        {[300, 180, 240].map((w, i) => (
-          <div key={i} style={{
-            height: i === 0 ? 36 : 20, width: w,
-            borderRadius: 8, background: 'rgba(15,25,55,0.08)',
-          }} />
-        ))}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%' }}>
+        {statusLabel && (
+          <div style={{ paddingBottom: 'var(--gap-12)' }}>
+            <div style={block(96, 24)} />
+          </div>
+        )}
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--gap-16)', width: '100%' }}>
+          {leftAddon && <div style={block(20, 20)} />}
+          <div style={block(420, headingHeight)} />
+          {titleAddon && <div style={block(140, 28)} />}
+          {rightAddon && <div style={{ marginLeft: 'auto', ...block(28, 28) }} />}
+        </div>
+
+        {filterCompanySelectProps && (
+          <div style={{ paddingTop: 'var(--gap-8)' }}>
+            <div style={block(140, 28)} />
+          </div>
+        )}
+
+        {subtitle && (
+          <div style={{ paddingTop: 'var(--gap-8)' }}>
+            <div style={block(280, 24)} />
+          </div>
+        )}
+
+        {titleStatusProps && (
+          <div style={{ paddingTop: 'var(--gap-20)', paddingBottom: 'var(--gap-4)', maxWidth: 720, width: '100%' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--gap-8)' }}>
+              <div style={block(240, 22)} />
+              <div style={block(360, 20)} />
+            </div>
+          </div>
+        )}
+
+        {buttonsGroup && (
+          <div style={{ paddingTop: 'var(--gap-24)', display: 'flex', gap: 'var(--gap-16)' }}>
+            <div style={block(200, 56)} />
+            <div style={block(200, 56)} />
+            <div style={block(120, 56)} />
+          </div>
+        )}
       </div>
     );
   }
@@ -79,21 +167,16 @@ export function TitleView({
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%' }}>
       {statusLabel && (
         <div style={{ paddingBottom: 'var(--gap-12)' }}>
-          <span style={{
-            background: '#0cc44d', color: 'rgba(255,255,255,0.94)',
-            fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
-            borderRadius: 'var(--border-radius-pill)',
-            padding: 'var(--gap-4) var(--gap-12)',
-            fontFamily: 'var(--font-family-system)',
-          }}>
-            {statusLabel}
-          </span>
+          <Status view="contrast" color={statusColor} size={24} shape="rounded" uppercase>
+            <EditableText value={statusLabel} onChange={onStatusLabelChange} />
+          </Status>
         </div>
       )}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--gap-16)', width: '100%' }}>
-        <Title tag="h1" view={view === 'xLarge' ? 'xlarge' : view === 'medium' ? 'medium' : 'large'} font="system">
-          {heading}
+        {leftAddon && <span style={{ display: 'inline-flex', alignItems: 'center' }}>{leftAddon}</span>}
+        <Title tag="h1" view={titleView} font="system">
+          <EditableText value={heading} onChange={onHeadingChange} />
         </Title>
         {titleAddon && <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--gap-8)' }}>{titleAddon}</div>}
         {rightAddon && <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>{rightAddon}</div>}
@@ -116,7 +199,9 @@ export function TitleView({
 
       {subtitle && (
         <div style={{ paddingTop: 'var(--gap-8)' }}>
-          <Text view="primary-medium" color="secondary">{subtitle}</Text>
+          <Text view="primary-medium" color="secondary">
+            <EditableText value={subtitle} onChange={onSubtitleChange} />
+          </Text>
         </div>
       )}
 
@@ -127,7 +212,7 @@ export function TitleView({
             paddingLeft: 'var(--gap-16)', paddingTop: 'var(--gap-4)', paddingBottom: 'var(--gap-4)',
             display: 'flex', flexDirection: 'column', gap: 'var(--gap-8)',
           }}>
-            <Title tag="div" view="small" font="system">{titleStatusProps.title}</Title>
+            <Title tag="div" view="xsmall" font="system">{titleStatusProps.title}</Title>
             <Text view="primary-small" color="primary">{titleStatusProps.text}</Text>
           </div>
         </div>

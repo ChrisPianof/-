@@ -5,3 +5,8 @@
   --button-primary-active-bg-color: var(--color-light-accent-primary-press) !important;
   --button-primary-color: var(--color-static-text-primary-inverted) !important;
 }
+
+/* Popover inner has white bg+shadow but no border-radius — add it so the surface matches our menu radius */
+[class*='popover__inner'] {
+  border-radius: var(--border-radius-12) !important;
+}

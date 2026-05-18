@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Skeleton } from '@alfalab/core-components/skeleton';
-import { DevPanelWrapper, type PropSpec } from '@local/devpanel';
+import { DevPanelWrapper, type PropSpec, type AddOption } from '@local/devpanel';
 
 export enum BackgroundPlateView {
   Primary = 'primary',
@@ -15,6 +15,9 @@ interface BackgroundPlateProps {
   showSkeleton?: boolean;
   enableHover?: boolean;
   children?: React.ReactNode;
+  onDuplicate?: () => void;
+  onDelete?: () => void;
+  addOptions?: AddOption[];
 }
 
 const viewStyles: Record<BackgroundPlateView, React.CSSProperties> = {
@@ -39,7 +42,7 @@ function BackgroundPlateContent({ view, showSkeleton, enableHover, children }: B
     <div
       style={{
         borderRadius: 'var(--border-radius-16)',
-        padding: 'var(--gap-24)',
+        padding: 'var(--gap-32)',
         transition: 'box-shadow 0.2s ease, transform 0.2s ease',
         boxShadow: canHover && hovered ? '0 8px 24px rgba(0,0,0,0.12)' : 'none',
         transform: canHover && hovered ? 'translateY(-2px)' : 'none',
@@ -63,14 +66,17 @@ function BackgroundPlateContent({ view, showSkeleton, enableHover, children }: B
 }
 
 export function BackgroundPlate(props: BackgroundPlateProps) {
-  const { children, ...rest } = props;
+  const { children, onDuplicate, onDelete, addOptions, ...rest } = props;
   return (
     <DevPanelWrapper
       title="BackgroundPlate"
       spec={DEV_SPEC}
       baseProps={rest as Record<string, unknown>}
+      onDuplicate={onDuplicate}
+      onDelete={onDelete}
+      addOptions={addOptions}
       render={(p) => (
-        <BackgroundPlateContent {...(p as Omit<BackgroundPlateProps, 'children'>)}>
+        <BackgroundPlateContent {...(p as Omit<BackgroundPlateProps, 'children' | 'onDuplicate' | 'onDelete' | 'addOptions'>)}>
           {children}
         </BackgroundPlateContent>
       )}
