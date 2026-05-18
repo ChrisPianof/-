@@ -194,8 +194,19 @@ function Cell({
     return { ...base, left: 0, right: 0, bottom: -16, height: 8, borderStyle: 'solid' };
   };
 
+  // Исключаем из drag элементы с data-no-dnd (например, EditableText span внутри label).
+  // Без этого PointerSensor перехватывает pointerdown на любом потомке и блокирует click.
+  const dragListeners = drag.listeners ?? {};
+  const wrappedListeners: typeof dragListeners = {
+    ...dragListeners,
+    onPointerDown: (e: React.PointerEvent) => {
+      if ((e.target as HTMLElement).closest('[data-no-dnd]')) return;
+      dragListeners.onPointerDown?.(e);
+    },
+  };
+
   return (
-    <div ref={setRef} style={style} {...drag.listeners} {...drag.attributes}>
+    <div ref={setRef} style={style} {...wrappedListeners} {...drag.attributes}>
       {children}
       {indicator && <div style={phantomStyle(indicator)} />}
     </div>

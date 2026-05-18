@@ -37,34 +37,36 @@ function BackgroundPlateContent({ view, showSkeleton, enableHover, children }: B
   const [hovered, setHovered] = useState(false);
   const canHover = enableHover && view !== BackgroundPlateView.Border;
 
+  if (showSkeleton) {
+    return (
+      <div
+        style={{
+          borderRadius: 'var(--border-radius-16)',
+          background: 'var(--color-light-neutral-translucent-100)',
+          padding: 'var(--gap-32)',
+        }}
+      >
+        <div style={{ visibility: 'hidden' }}>{children}</div>
+      </div>
+    );
+  }
+
   return (
     <div
       style={{
         borderRadius: 'var(--border-radius-16)',
-        padding: showSkeleton ? 0 : 'var(--gap-32)',
+        padding: 'var(--gap-32)',
         position: 'relative',
         transition: 'box-shadow 0.2s ease, transform 0.2s ease',
         boxShadow: canHover && hovered ? '0 8px 24px rgba(0,0,0,0.12)' : 'none',
         transform: canHover && hovered ? 'translateY(-2px)' : 'none',
         cursor: canHover ? 'pointer' : 'default',
-        overflow: 'visible',
         ...viewStyles[view],
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {showSkeleton ? (
-        <div
-          style={{
-            position: 'relative',
-            margin: 4,
-            borderRadius: 'var(--border-radius-12)',
-            background: 'var(--color-light-base-bg-secondary)',
-          }}
-        >
-          <div style={{ visibility: 'hidden' }}>{children}</div>
-        </div>
-      ) : children}
+      {children}
     </div>
   );
 }

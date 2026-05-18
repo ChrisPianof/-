@@ -205,11 +205,11 @@ import { BackgroundPlate, BackgroundPlateView } from '../components/BackgroundPl
 
 Пропы:
 - `view: BackgroundPlateView` — Primary · Secondary · Colored · Dropzone · Border
-- `showSkeleton?: boolean` — заменяет children на `<div>` с серым фоном и `border-radius: 12` (Level 2 corner radius). Соответствует loading-стейту из Figma «Сценарии» (file `pczuwshD4kyGcqq089R4WO`, node `12015:78234` — `SkeletonBody`). Спецификация:
-  - Плейт `padding: 0` (скелетон-блок прижимается к краям) + `margin: 4` на скелетон-блоке → виден 4px-зазор по периметру где просвечивает плейт (radius 16) с фоном страницы (`#F2F3F5`).
-  - Скелетон-блок: `border-radius: 12`, `background: var(--color-light-base-bg-secondary)` = `#F2F3F5` (видимый серый, совпадает с фоном страницы и тем, что видно в уголочках). Note: Figma токен `neutral-translucent/100` (`#2637580F`, 6% navy) даёт визуальный эффект `#F2F3F5` только при наложении на серый фон страницы; в коде Skeleton накладывался на белый плейт → невидимо. Поэтому ставим итоговый цвет напрямую через `base-bg-secondary`.
-  - Размер скелетона сохраняется по children (визуально скрытые через `visibility: hidden`, но держат высоту/ширину) — высота плейта не меняется относительно реального content.
-  - Не используется `Skeleton` из core-components — для loading-стейта в Альфе важен фиксированный цвет, без animate-фазы (которая даёт `neutral-translucent/300`).
+- `showSkeleton?: boolean` — заменяет весь плейт на `<div>` цвета `neutral-translucent/100` (`#2637580F` = `#263758` + alpha 6%) с `border-radius: 16`. Соответствует loading-стейту из Figma «Сценарии» (file `pczuwshD4kyGcqq089R4WO`, node `12015:78234` — `SkeletonBody`). Спецификация:
+  - **Никакой белой подложки и отступов.** В режиме loading плейта-как-карточки нет — есть только серый прямоугольник цвета `neutral-translucent/100` поверх фона страницы (`#F2F3F5`), визуальный результат ≈ `#E6E8EC`.
+  - Background через CSS-переменную `var(--color-light-neutral-translucent-100)`; не использовать `Skeleton` из core-components (он рассчитан на наложение на белый фон + анимацию).
+  - Размер скелетона сохраняется по children (визуально скрытые через `visibility: hidden`, но держат высоту/ширину) — высота не меняется относительно реального content.
+  - В Figma вкладка Selection colors показывает hex без alpha-канала (`#263758`) — но реальный CSS-цвет включает alpha `0F` (6%): `#2637580F`.
 - `enableHover?: boolean` — анимация подъёма при наведении (отключена для Border)
 
 ## Пропсы в DevPanel

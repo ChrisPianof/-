@@ -281,6 +281,21 @@ export default function BasePage() {
 
   const addBgPlate = () =>
     setBgPlates(prev => [...prev, { id: nextId(prev.map(i => i.id)), children: [] }]);
+  const duplicateBgPlate = (id: number) => () =>
+    setBgPlates(prev => {
+      const idx = prev.findIndex(bp => bp.id === id);
+      if (idx === -1) return prev;
+      const source = prev[idx];
+      const newId = nextId(prev.map(i => i.id));
+      const clone: BgPlateItem = {
+        id: newId,
+        children: source.children.map(row => ({
+          id: row.id,
+          items: row.items.map(item => ({ ...item })),
+        })),
+      };
+      return [...prev.slice(0, idx + 1), clone, ...prev.slice(idx + 1)];
+    });
   const removeBgPlate = (id: number) => () =>
     setBgPlates(prev => prev.filter(i => i.id !== id));
 
@@ -625,7 +640,7 @@ export default function BasePage() {
               <SortableItem id={bp.id}>
                 <BackgroundPlate
                   view={BackgroundPlateView.Primary}
-                  onDuplicate={addBgPlate}
+                  onDuplicate={duplicateBgPlate(bp.id)}
                   onDelete={removeBgPlate(bp.id)}
                   addOptions={bgPlateChildrenAddOptions(bp.id)}
                 >

@@ -60,8 +60,18 @@ export function SortableItem({
     opacity: isDragging ? 0.4 : 1,
     position: 'relative',
   };
+  // Исключаем из drag элементы с data-no-dnd (EditableText), иначе PointerSensor
+  // перехватывает pointerdown и click внутри inline-редактируемого текста теряется.
+  const dragListeners = listeners ?? {};
+  const wrappedListeners: typeof dragListeners = {
+    ...dragListeners,
+    onPointerDown: (e: React.PointerEvent) => {
+      if ((e.target as HTMLElement).closest('[data-no-dnd]')) return;
+      dragListeners.onPointerDown?.(e);
+    },
+  };
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div ref={setNodeRef} style={style} {...attributes} {...wrappedListeners}>
       {children}
     </div>
   );
