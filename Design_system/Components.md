@@ -30,6 +30,8 @@ import { RocketMIcon } from '@alfalab/icons-glyph/RocketMIcon';
 
   Группа тегов (Secondary-вариант): `AlfaBank/Design_system/TagGroup.md`
 
+  **Важно:** оборачивать в `<div style={{ width: '100%' }}>` — полоска под табами растягивается на ширину родителя (см. TabsView.md → «Полоска снизу — full-width родителя»).
+
 ```tsx
 import { Tabs, Tab } from '@alfalab/core-components/tabs';
 

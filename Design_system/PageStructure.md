@@ -16,14 +16,12 @@
 
 ## CorporateContent
 
-Паддинги: 40px сверху, 52px по бокам, 64px снизу.
+Паддинги и отступы между зонами — в секции `## Spacings`.
 
 Зоны сверху вниз:
 
   1. **TitleView** — заголовок страницы (всегда). Детали → `TitleView.md`
-  Отступы между зонами: 32px
-  2. **TabsView** — переключатель вкладок (опционально) Детали → `TabsView.md`
-  Отступы между зонами: 32px
+  2. **TabsView** — переключатель вкладок (опционально). Детали → `TabsView.md`
   3. **Body** — контент
 
 ## Body
@@ -33,12 +31,10 @@
 
 Right
 Опциональная колонка 400px. Может отсутствовать (одноколоночный экран = только Left). Содержит только `IsleBlock` (детали → `IsleBlock.md`).
-Отступ между несколькими IsleBlock: 24px.
 Виды IsleBlock: навигационный (опционален; если присутствует — всегда первый сверху) + информационные.
 
 Left
 Одна или несколько карточек `BackgroundPlate` (детали → `BackgroundPlate.md`).
-Отступ между карточками: 24px.
 
   Компоненты внутри `BackgroundPlate`:
   - `TitleView` block-уровня — `view='small'` (DS Medium 22/26, один на BgPlate) или `view='xsmall'` (DS Small 18/22, можно несколько). Пропы урезаны до `heading` / `leftAddon` / `rightAddon` / `subtitle` / `showSkeleton`. Детали → `TitleView.md` → «BgPlate-контекст»
@@ -47,11 +43,28 @@ Left
   - `SelectDesktop` (`@alfalab/core-components/select/desktop`) — выпадающий список (детали → `Select.md`)
   - `UniversalDateInputDesktop` (`@alfalab/core-components/universal-date-input/desktop`) — поле даты (детали → `UniversalDateInput.md`)
 
-  Отступы между компонентами внутри `BackgroundPlate`:
-  - TagGroup → Input/Select/Date: 20px
-  - Input/Select/Date → Input/Select/Date: 24px
+  Отступы между компонентами внутри `BackgroundPlate` — в секции `## Spacings` (+ полная таблица отступов внутри BgPlate в `BackgroundPlate.md` → «Отступы внутри»).
 
   Поведение самих form-инпутов (default `size`, семантика `block`) — в `.md` соответствующих компонентов (`Input.md`, `Select.md`, `UniversalDateInput.md`).
+
+## Spacings
+
+| Зона / отступ | px |
+|---|---|
+| CorporateContent padding — сверху | 40 |
+| CorporateContent padding — по бокам | 52 |
+| CorporateContent padding — снизу | 64 |
+| TitleView → TabsView | 32 |
+| TitleView → Body (если TabsView нет) | 32 |
+| TabsView → Body | 32 |
+| Body grid gap (Left ↔ Right колонки) | 24 |
+| Left: между BackgroundPlate карточками | 24 |
+| Right: между IsleBlock | 24 |
+| BackgroundPlate padding (внутренний) | 32 |
+| Внутри BgPlate: TagGroup → Input/Select/Date | 20 |
+| Внутри BgPlate: Input/Select/Date → Input/Select/Date | 24 |
+
+Дополнительные spacings внутри BgPlate (Title → row, TitleStatus, Button etc.) — в `BackgroundPlate.md` → «Отступы внутри».
 
 ## Адаптивность
 
@@ -74,7 +87,7 @@ Left
 - Right-колонку Body зарезервировать только для IsleBlock
 
 ### Don't
-- Don't менять отступы между зонами (32px фиксированные)
+- Don't менять отступы между зонами — все значения в `## Spacings`, фиксированные
 - Don't помещать IsleBlock в Left-колонку — только Right
 - Don't создавать страницы без TitleView
 - Don't ставить навигационный IsleBlock не первым в стеке Right
