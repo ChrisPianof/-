@@ -56,7 +56,7 @@ function computeSide(
 }
 
 export function BgPlateRowsDnd<ItemT extends { id: number }>({
-  rows, onMove, renderItem, itemGap = 'var(--gap-24)', canGroup,
+  rows, onMove, renderItem, itemGap = 'var(--gap-24)', canGroup, getRowGap,
 }: {
   rows: DnDRow<ItemT>[];
   onMove: (action: MoveAction) => void;
@@ -64,6 +64,9 @@ export function BgPlateRowsDnd<ItemT extends { id: number }>({
   itemGap?: string;
   /** Можно ли поставить src item рядом с dest item в одной row. Если нет — drop side ограничивается top/bottom. */
   canGroup?: (srcRowId: number, srcItemId: number, destRowId: number, destItemId: number) => boolean;
+  /** Кастомный gap между rows. Решает на основе содержимого предыдущей и текущей row.
+   * По умолчанию `var(--gap-24)`. Используется для правил типа «TabsSecondary → Input/Select/Date: 20px». */
+  getRowGap?: (prevRow: DnDRow<ItemT>, currentRow: DnDRow<ItemT>) => string;
 }) {
   const [indicator, setIndicator] = useState<Indicator>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -123,13 +126,16 @@ export function BgPlateRowsDnd<ItemT extends { id: number }>({
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {rows.map((row, rowIdx) => {
           const isFirst = rowIdx === 0;
+          const marginTop = isFirst
+            ? 0
+            : (getRowGap ? getRowGap(rows[rowIdx - 1], row) : 'var(--gap-24)');
           return (
             <div
               key={row.id}
               style={{
                 display: 'flex',
                 gap: itemGap,
-                marginTop: isFirst ? 0 : 'var(--gap-24)',
+                marginTop,
                 alignItems: 'stretch',
               }}
             >

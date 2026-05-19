@@ -510,16 +510,21 @@ export default function BasePage() {
             <SecondaryTabListDesktop {...props} tagView={p.tagView as 'filled' | 'outlined' | 'transparent'} tagShape="rectangular" />
           );
           return (
-            <Tabs
-              TabList={DynamicTabList as never}
-              size={PX_TO_TAB_SIZE[p.size] ?? 'xs'}
-              selectedId={activeTab}
-              onChange={(_, { selectedId }) => setActiveTab(selectedId as string)}
-            >
-              <Tab title={<EditableText value={p.tab1} onChange={v => ctx.setProp('tab1', v)} />} id='description' />
-              <Tab title={<EditableText value={p.tab2} onChange={v => ctx.setProp('tab2', v)} />} id='dev' />
-              <Tab title={<EditableText value={p.tab3} onChange={v => ctx.setProp('tab3', v)} />} id='updates' />
-            </Tabs>
+            // SecondaryTabList использует display: inline-flex, а Tabs root — block <div>.
+            // Это создаёт line-box контекст с +4px к высоте (line-height шрифта).
+            // Оборачиваем в flex-column, чтобы убрать inline-context и rect.height = visible.
+            <div style={{ display: 'flex' }}>
+              <Tabs
+                TabList={DynamicTabList as never}
+                size={PX_TO_TAB_SIZE[p.size] ?? 'xs'}
+                selectedId={activeTab}
+                onChange={(_, { selectedId }) => setActiveTab(selectedId as string)}
+              >
+                <Tab title={<EditableText value={p.tab1} onChange={v => ctx.setProp('tab1', v)} />} id='description' />
+                <Tab title={<EditableText value={p.tab2} onChange={v => ctx.setProp('tab2', v)} />} id='dev' />
+                <Tab title={<EditableText value={p.tab3} onChange={v => ctx.setProp('tab3', v)} />} id='updates' />
+              </Tabs>
+            </div>
           );
         }}
       />
@@ -654,6 +659,15 @@ export default function BasePage() {
                       if (!src || !destRow) return false;
                       if (!isGroupable(src.kind)) return false;
                       return destRow.items.every(it => isGroupable(it.kind));
+                    }}
+                    getRowGap={(prev, curr) => {
+                      // Правила из BackgroundPlate.md / PageStructure.md:
+                      // Title/TabsSecondary → Input/Select/Date: 20px
+                      // Input/Select/Date → Input/Select/Date: 24px
+                      const isTitleOrTabs = (row: typeof prev) =>
+                        row.items.some(it => it.kind === 'title' || it.kind === 'tabs');
+                      if (isTitleOrTabs(prev) || isTitleOrTabs(curr)) return 'var(--gap-20)';
+                      return 'var(--gap-24)';
                     }}
                   />
                 </BackgroundPlate>

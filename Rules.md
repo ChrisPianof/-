@@ -6,6 +6,16 @@
 
 «Положи в Left» — уточнить: внутрь `BackgroundPlate` или в колонку Left рядом с ней?
 
+## Dev-сервер
+
+Если порт 5175 не слушается (`lsof -iTCP:5175 -sTCP:LISTEN` → пусто) — запускать сам, не просить пользователя:
+
+```bash
+cd /Users/vadimpianof/Desktop/Claude/AlfaBank && npm run dev -- --port 5175
+```
+
+Через `Bash` с `run_in_background: true`. `preview_start` MCP заблокирован — использовать Bash. После запуска проверять stdout: `tail` лог-файла, дождаться `ready in Xms` и `Local: http://localhost:5175/`.
+
 ## Workflow: Figma → Design_system → Код
 
 Применяется когда юзер даёт Figma-ссылку на паттерн / компонент. Все правила приёма паттерна — в одном месте.
