@@ -260,10 +260,20 @@ const BLOCK_TITLE_SPEC: PropSpec[] = [
 export default function BasePage() {
   const { device } = useBreakpoint();
   const [activeStep, setActiveStep] = useState(2);
-  const [activeTab, setActiveTab] = useState('description');
-  const [inputValue, setInputValue] = useState('');
-  const [selectedOptions, setSelectedOptions] = useState<{ key: string; content?: string }[]>([]);
-  const [dateValue, setDateValue] = useState('');
+  type SelectValue = { key: string; content?: string }[];
+  const [activeTabs, setActiveTabs] = useState<Record<string, string>>({});
+  const [inputValues, setInputValues] = useState<Record<string, string>>({});
+  const [selectValues, setSelectValues] = useState<Record<string, SelectValue>>({});
+  const [dateValues, setDateValues] = useState<Record<string, string>>({});
+  const getActiveTab = (key: string) => activeTabs[key] ?? 'description';
+  const setActiveTabFor = (key: string) => (id: string) =>
+    setActiveTabs(prev => ({ ...prev, [key]: id }));
+  const setInputValueFor = (key: string) => (value: string) =>
+    setInputValues(prev => ({ ...prev, [key]: value }));
+  const setSelectValueFor = (key: string) => (value: SelectValue) =>
+    setSelectValues(prev => ({ ...prev, [key]: value }));
+  const setDateValueFor = (key: string) => (value: string) =>
+    setDateValues(prev => ({ ...prev, [key]: value }));
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -305,12 +315,22 @@ export default function BasePage() {
       if (idx === -1) return prev;
       const source = prev[idx];
       const newId = nextId(prev.map(i => i.id));
+      const usedRowIds = prev.flatMap(bp => allRowIds(bp.children));
+      const usedItemIds = prev.flatMap(bp => allChildIds(bp.children));
       const clone: BgPlateItem = {
         id: newId,
-        children: source.children.map(row => ({
-          id: row.id,
-          items: row.items.map(item => ({ ...item })),
-        })),
+        children: source.children.map(row => {
+          const newRowId = nextId(usedRowIds);
+          usedRowIds.push(newRowId);
+          return {
+            id: newRowId,
+            items: row.items.map(item => {
+              const newItemId = nextId(usedItemIds);
+              usedItemIds.push(newItemId);
+              return { ...item, id: newItemId };
+            }),
+          };
+        }),
       };
       return [...prev.slice(0, idx + 1), clone, ...prev.slice(idx + 1)];
     });
@@ -496,7 +516,9 @@ export default function BasePage() {
 
   // TabsView — опциональная зона между TitleView и Body. Primary/secondary вид.
   // Не путать с TagGroup внутри BgPlate (фильтрация).
-  const renderTabsView = (tvId: number) => (
+  const renderTabsView = (tvId: number) => {
+    const tabKey = `tv:${tvId}`;
+    return (
     <DevPanelWrapper<TabsViewProps>
       title="TabsView"
       onDuplicate={addTabsView}
@@ -505,12 +527,14 @@ export default function BasePage() {
       spec={TABSVIEW_SPEC}
       baseProps={{ view: 'primary', size: 'm', tab1: 'Раздел 1', tab2: 'Раздел 2', tab3: 'Раздел 3' }}
       render={(p, ctx) => (
-        <div style={{ display: 'flex' }}>
+        // width:100% — чтобы primary TabList'а полоска снизу растянулась на всю ширину
+        // (`.tabs__component::before { width: 100% }` берёт ширину родителя).
+        <div style={{ width: '100%' }}>
           <Tabs
             view={p.view as 'primary' | 'secondary'}
             size={p.size as 'xxs' | 'xs' | 's' | 'm' | 'l' | 'xl'}
-            selectedId={activeTab}
-            onChange={(_, { selectedId }) => setActiveTab(selectedId as string)}
+            selectedId={getActiveTab(tabKey)}
+            onChange={(_, { selectedId }) => setActiveTabFor(tabKey)(selectedId as string)}
           >
             <Tab title={<EditableText value={p.tab1} onChange={v => ctx.setProp('tab1', v)} />} id='description' />
             <Tab title={<EditableText value={p.tab2} onChange={v => ctx.setProp('tab2', v)} />} id='dev' />
@@ -519,9 +543,11 @@ export default function BasePage() {
         </div>
       )}
     />
-  );
+    );
+  };
 
   const renderChild = (bgId: number, child: BgChild) => {
+    const childKey = `bg${bgId}:c${child.id}`;
     const addOptions = bgPlateChildrenAddOptions(bgId);
     const onDelete = removeChild(bgId, child.id);
     const typeSwap = {
@@ -567,8 +593,8 @@ export default function BasePage() {
               <Tabs
                 TabList={DynamicTabList as never}
                 size={PX_TO_TAB_SIZE[p.size] ?? 'xs'}
-                selectedId={activeTab}
-                onChange={(_, { selectedId }) => setActiveTab(selectedId as string)}
+                selectedId={getActiveTab(childKey)}
+                onChange={(_, { selectedId }) => setActiveTabFor(childKey)(selectedId as string)}
               >
                 <Tab title={<EditableText value={p.tab1} onChange={v => ctx.setProp('tab1', v)} />} id='description' />
                 <Tab title={<EditableText value={p.tab2} onChange={v => ctx.setProp('tab2', v)} />} id='dev' />
@@ -599,8 +625,8 @@ export default function BasePage() {
               success={p.success}
               hint={p.hint}
               clear={p.clear}
-              value={inputValue}
-              onChange={(_, { value }) => setInputValue(value)}
+              value={inputValues[childKey] ?? ''}
+              onChange={(_, { value }) => setInputValueFor(childKey)(value)}
             />
           </div>
         )}
@@ -625,8 +651,8 @@ export default function BasePage() {
             error: p.error,
             hint: p.hint,
             autoCorrection: p.autoCorrection,
-            value: dateValue,
-            onChange: (_date: Date | null, valueStr: string) => setDateValue(valueStr),
+            value: dateValues[childKey] ?? '',
+            onChange: (_date: Date | null, valueStr: string) => setDateValueFor(childKey)(valueStr),
           };
           // UniversalDateInputDesktop = discriminated union по view: 'time' не принимает picker,
           // а 'date'/'date-time'/'date-range' принимает. При runtime ветка выбирается по p.picker;
@@ -667,8 +693,8 @@ export default function BasePage() {
               hint={p.hint}
               clear={p.clear}
               options={selectOptions}
-              selected={selectedOptions}
-              onChange={({ selectedMultiple }) => setSelectedOptions(selectedMultiple as typeof selectedOptions)}
+              selected={selectValues[childKey] ?? []}
+              onChange={({ selectedMultiple }) => setSelectValueFor(childKey)(selectedMultiple as SelectValue)}
             />
           </div>
         )}
