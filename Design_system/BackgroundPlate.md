@@ -136,11 +136,11 @@ Corporate               = #E1EAF6
 | Отступ | px |
 |---|---|
 | Title → contentTable.Row | 8 |
-| Title → Input/Select/TabsSecondary/TagGroup | 20 |
+| Title → Input/Select/TagGroup | 20 |
 | Input/Select → TagGroup | 20 |
 | Input/Select → Forms :: Row/Input | 24 |
 | Input/Select → следующий Title (внутри BgPlate)/Button | 32 |
-| Следующий Title (внутри BgPlate) → Input/Select/TabsSecondary | 20 |
+| Следующий Title (внутри BgPlate) → Input/Select/TagGroup | 20 |
 | TagGroup → Input | 20 |
 | BgPlate padding (от собственного external края до контента) | 32 |
 
@@ -157,9 +157,9 @@ Corporate               = #E1EAF6
 
 **Что НЕ может стоять рядом в row** (`title`, `tabs`):
 - `TitleView` (block-level)
-- `TabsSecondary`
+- `TagGroup`
 
-Эти всегда живут в собственной single-item row на всю ширину. Mixed row (например, `TabsSecondary + Input`) запрещены архитектурно: и в DnD (side `left`/`right` блокируется, остаются только `top`/`bottom`), и в safety-check `applyMove` (если каким-то путём пришёл invalid action — отклоняется).
+Эти всегда живут в собственной single-item row на всю ширину. Mixed row (например, `TagGroup + Input`) запрещены архитектурно: и в DnD (side `left`/`right` блокируется, остаются только `top`/`bottom`), и в safety-check `applyMove` (если каким-то путём пришёл invalid action — отклоняется).
 
 - **Ширины в row:** каждый item имеет `flex: 1` → ширины равны (N items → каждый занимает `1/N` от ширины row минус gap'ы)
 - **Gap между items в row:** **24px** (горизонтальный)

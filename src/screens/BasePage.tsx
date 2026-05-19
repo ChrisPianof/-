@@ -122,6 +122,7 @@ function applyMove(rows: BgRow[], action: MoveAction): BgRow[] {
 }
 
 type TabsProps = { size: string; tagView: string; tab1: string; tab2: string; tab3: string };
+type TabsViewProps = { view: string; size: string; tab1: string; tab2: string; tab3: string };
 const PX_TO_TAB_SIZE: Record<string, 'xxs' | 'xs' | 's' | 'm' | 'l' | 'xl'> = {
   '32': 'xxs', '40': 'xs', '48': 's', '56': 'm', '64': 'l', '72': 'xl',
 };
@@ -184,6 +185,14 @@ const TITLEVIEW_SPEC: PropSpec[] = [
 const TABS_SPEC: PropSpec[] = [
   { name: 'size', label: 'Размер', control: 'cycle', values: ['32', '40', '48', '56', '64', '72'] },
   { name: 'tagView', label: 'Вид тега', control: 'cycle', values: ['outlined', 'filled', 'transparent'] },
+  { name: 'tab1', label: 'Таб 1', control: 'input' },
+  { name: 'tab2', label: 'Таб 2', control: 'input' },
+  { name: 'tab3', label: 'Таб 3', control: 'input' },
+];
+
+const TABSVIEW_SPEC: PropSpec[] = [
+  { name: 'view', label: 'Вид', control: 'cycle', values: ['primary', 'secondary'] },
+  { name: 'size', label: 'Размер', control: 'cycle', values: ['xxs', 'xs', 's', 'm', 'l', 'xl'] },
   { name: 'tab1', label: 'Таб 1', control: 'input' },
   { name: 'tab2', label: 'Таб 2', control: 'input' },
   { name: 'tab3', label: 'Таб 3', control: 'input' },
@@ -261,6 +270,10 @@ export default function BasePage() {
   const [titleViews, setTitleViews] = usePersisted<IdItem[]>(
     'alfabank.base.v2.titleViews', [{ id: 0 }], isIdItemArray,
   );
+  const [tabsViews, setTabsViews] = usePersisted<IdItem[]>(
+    'alfabank.base.v4.tabsViews', [{ id: 0 }],
+    (v): v is IdItem[] => isIdItemArray(v) && v.length > 0,
+  );
   const [bgPlates, setBgPlates] = usePersisted<BgPlateItem[]>(
     'alfabank.base.v3.bgPlates',
     [{ id: 0, children: [
@@ -278,6 +291,11 @@ export default function BasePage() {
     setTitleViews(prev => [...prev, { id: nextId(prev.map(i => i.id)) }]);
   const removeTitleView = (id: number) => () =>
     setTitleViews(prev => prev.filter(i => i.id !== id));
+
+  const addTabsView = () =>
+    setTabsViews(prev => [...prev, { id: nextId(prev.map(i => i.id)) }]);
+  const removeTabsView = (id: number) => () =>
+    setTabsViews(prev => prev.filter(i => i.id !== id));
 
   const addBgPlate = () =>
     setBgPlates(prev => [...prev, { id: nextId(prev.map(i => i.id)), children: [] }]);
@@ -333,10 +351,15 @@ export default function BasePage() {
 
   const titleViewAddOptions: AddOption[] = [
     { label: 'TitleView', onSelect: addTitleView },
+    { label: 'TabsView', onSelect: addTabsView },
+  ];
+  const tabsViewAddOptions: AddOption[] = [
+    { label: 'TabsView', onSelect: addTabsView },
+    { label: 'TitleView', onSelect: addTitleView },
   ];
   const bgPlateChildrenAddOptions = (bgId: number): AddOption[] => [
     { label: 'TitleView', onSelect: addChildTo(bgId, 'title') },
-    { label: 'TabsSecondary', onSelect: addChildTo(bgId, 'tabs') },
+    { label: 'TagGroup', onSelect: addChildTo(bgId, 'tabs') },
     { label: 'Input', onSelect: addChildTo(bgId, 'input') },
     { label: 'Select', onSelect: addChildTo(bgId, 'select') },
     { label: 'Date Picker', onSelect: addChildTo(bgId, 'date') },
@@ -471,6 +494,33 @@ export default function BasePage() {
     />
   );
 
+  // TabsView — опциональная зона между TitleView и Body. Primary/secondary вид.
+  // Не путать с TagGroup внутри BgPlate (фильтрация).
+  const renderTabsView = (tvId: number) => (
+    <DevPanelWrapper<TabsViewProps>
+      title="TabsView"
+      onDuplicate={addTabsView}
+      onDelete={removeTabsView(tvId)}
+      addOptions={tabsViewAddOptions}
+      spec={TABSVIEW_SPEC}
+      baseProps={{ view: 'primary', size: 'm', tab1: 'Раздел 1', tab2: 'Раздел 2', tab3: 'Раздел 3' }}
+      render={(p, ctx) => (
+        <div style={{ display: 'flex' }}>
+          <Tabs
+            view={p.view as 'primary' | 'secondary'}
+            size={p.size as 'xxs' | 'xs' | 's' | 'm' | 'l' | 'xl'}
+            selectedId={activeTab}
+            onChange={(_, { selectedId }) => setActiveTab(selectedId as string)}
+          >
+            <Tab title={<EditableText value={p.tab1} onChange={v => ctx.setProp('tab1', v)} />} id='description' />
+            <Tab title={<EditableText value={p.tab2} onChange={v => ctx.setProp('tab2', v)} />} id='dev' />
+            <Tab title={<EditableText value={p.tab3} onChange={v => ctx.setProp('tab3', v)} />} id='updates' />
+          </Tabs>
+        </div>
+      )}
+    />
+  );
+
   const renderChild = (bgId: number, child: BgChild) => {
     const addOptions = bgPlateChildrenAddOptions(bgId);
     const onDelete = removeChild(bgId, child.id);
@@ -500,7 +550,7 @@ export default function BasePage() {
     );
     if (child.kind === 'tabs') return (
       <DevPanelWrapper<TabsProps>
-        title="TabsSecondary"
+        title="TagGroup"
         onDelete={onDelete}
         addOptions={addOptions}
         spec={TABS_SPEC}
@@ -638,6 +688,18 @@ export default function BasePage() {
         </Sortable>
       </div>
 
+      {tabsViews.length > 0 && (
+        <div style={{ marginTop: 'var(--gap-32)', display: 'flex', flexDirection: 'column', gap: 'var(--gap-32)' }}>
+          <Sortable items={tabsViews} onReorder={setTabsViews}>
+            {(tv) => (
+              <SortableItem id={tv.id}>
+                {renderTabsView(tv.id)}
+              </SortableItem>
+            )}
+          </Sortable>
+        </div>
+      )}
+
       <div style={{ marginTop: 'var(--gap-32)', display: 'grid', gridTemplateColumns: gridColumns, gap: 'var(--gap-24)' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--gap-24)' }}>
           <Sortable items={bgPlates} onReorder={setBgPlates}>
@@ -662,7 +724,7 @@ export default function BasePage() {
                     }}
                     getRowGap={(prev, curr) => {
                       // Правила из BackgroundPlate.md / PageStructure.md:
-                      // Title/TabsSecondary → Input/Select/Date: 20px
+                      // Title/TagGroup → Input/Select/Date: 20px
                       // Input/Select/Date → Input/Select/Date: 24px
                       const isTitleOrTabs = (row: typeof prev) =>
                         row.items.some(it => it.kind === 'title' || it.kind === 'tabs');

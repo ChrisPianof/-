@@ -1,8 +1,8 @@
-# TabsSecondary.md — AlfaBank
+# TagGroup.md — AlfaBank
 ## Overview
-Secondary-вариант Tabs (теги) для фильтрации внутри BackgroundPlate. Не использовать для навигации между страницами — для этого TabsView.
+Группа тегов для фильтрации внутри BackgroundPlate (Secondary-вариант Tabs из @alfalab/core-components). Не использовать для навигации между страницами — для этого TabsView.
 
-## TabsSecondary
+## TagGroup
 
 ## Импорт
 
@@ -65,7 +65,7 @@ const FilledSecondaryTabList = (props: SecondaryTabListProps) => (
 Размер показывается в DevPanel в реальных пикселях, а не в abstract enum `xxs/xs/...`. Парсер маппит px → enum: 32→xxs · 40→xs · 48→s · 56→m · 64→l · 72→xl. `tagShape` в BgPlate-контексте не редактируется — зафиксирован в коде как `'rectangular'`.
 
 ### Do
-- Использовать TabsSecondary для фильтрации и сегментации внутри BackgroundPlate
+- Использовать TagGroup для фильтрации и сегментации внутри BackgroundPlate
 - Передавать tagView/tagShape через обёртку над SecondaryTabListDesktop
 
 ### Don't

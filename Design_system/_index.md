@@ -12,7 +12,7 @@ Buttons.md — документация ButtonDesktop: views, sizes, IconButton,
 BackgroundPlate.md — документация компонента BackgroundPlate (5 вьюх, скелетон, hover)
 TitleView.md — документация компонента TitleView: пропы, зоны, DotsButton
 TabsView.md — документация компонента Tabs: пропы, Tab, gotcha с dedupe
-TabsSecondary.md — Secondary-вариант Tabs (теги): size, tagView, tagShape, corp-тема, паттерн обёртки
+TagGroup.md — группа тегов (Secondary-вариант Tabs): size, tagView, tagShape, corp-тема, паттерн обёртки
 Input.md — документация компонента Input: пропы, onChange-сигнатура, corp-тема
 Select.md — документация SelectDesktop: OptionShape, нестандартная onChange, corp-тема
 UniversalDateInput.md — документация UniversalDateInputDesktop: 5 view (date/date-time/date-range/time/month), picker + Calendar, два corp.css

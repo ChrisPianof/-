@@ -27,7 +27,7 @@
 | Figma | Наш .md | Код (npm / путь) | Где применён | Статус | Заметка |
 |-------|---------|------------------|--------------|--------|---------|
 | Tabs (primary) | `TabsView.md` | `@alfalab/core-components/tabs` → `Tabs`, `Tab` | `src/screens/BasePage.tsx` | ✓ | Между TitleView и Body. Требует `resolve.dedupe` в vite.config |
-| TabsSecondary (теги) | `TabsSecondary.md` | `@alfalab/core-components/tabs` + `SecondaryTabListDesktop` | `src/screens/BasePage.tsx` | ✓ | Внутри BgPlate. Дефолт: `size='xs'`, `tagView='filled'` |
+| TabsSecondary / TagGroup (теги) | `TagGroup.md` | `@alfalab/core-components/tabs` + `SecondaryTabListDesktop` | `src/screens/BasePage.tsx` | ✓ | Внутри BgPlate. Дефолт: `size='xs'`, `tagView='filled'`. В коде = TagGroup, в Figma — TabsSecondary |
 | «Поле ввода» / Input | `Input.md` | `@alfalab/core-components/input/desktop` → `InputDesktop` | `src/screens/BasePage.tsx` | ✓ | Нестандартная `onChange` сигнатура |
 | «Выпадающий список» / Select | `Select.md` | `@alfalab/core-components/select/desktop` → `SelectDesktop` | `src/screens/BasePage.tsx` | ✓ | OptionShape. Corp.css отдельно |
 | `[D] UniversalDateInput` / «calendar» / «Календарь» / «Дата» / «date» | `UniversalDateInput.md` | `@alfalab/core-components/universal-date-input/desktop` → `UniversalDateInputDesktop` (+ `Calendar` из `/calendar`) | TBD — не применён в src/ | ✓ | 5 view (date/date-time/date-range/time/month). picker=true требует Calendar. Corp.css × 2. Owner: @vbarkalov. Паспорт Web::Core node `507:25760` |

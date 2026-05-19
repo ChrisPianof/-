@@ -42,13 +42,13 @@ Left
 
   Компоненты внутри `BackgroundPlate`:
   - `TitleView` block-уровня — `view='small'` (DS Medium 22/26, один на BgPlate) или `view='xsmall'` (DS Small 18/22, можно несколько). Пропы урезаны до `heading` / `leftAddon` / `rightAddon` / `subtitle` / `showSkeleton`. Детали → `TitleView.md` → «BgPlate-контекст»
-  - `TabsSecondary` (детали → `TabsSecondary.md`)
+  - `TagGroup` (детали → `TagGroup.md`)
   - `InputDesktop` (`@alfalab/core-components/input/desktop`) — текстовый ввод
   - `SelectDesktop` (`@alfalab/core-components/select/desktop`) — выпадающий список (детали → `Select.md`)
   - `UniversalDateInputDesktop` (`@alfalab/core-components/universal-date-input/desktop`) — поле даты (детали → `UniversalDateInput.md`)
 
   Отступы между компонентами внутри `BackgroundPlate`:
-  - TabsSecondary → Input/Select/Date: 20px
+  - TagGroup → Input/Select/Date: 20px
   - Input/Select/Date → Input/Select/Date: 24px
 
   Поведение самих form-инпутов (default `size`, семантика `block`) — в `.md` соответствующих компонентов (`Input.md`, `Select.md`, `UniversalDateInput.md`).

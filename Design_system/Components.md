@@ -28,7 +28,7 @@ import { RocketMIcon } from '@alfalab/icons-glyph/RocketMIcon';
 
 Документация: `AlfaBank/Design_system/TabsView.md`
 
-  Secondary-вариант (теги): `AlfaBank/Design_system/TabsSecondary.md`
+  Группа тегов (Secondary-вариант): `AlfaBank/Design_system/TagGroup.md`
 
 ```tsx
 import { Tabs, Tab } from '@alfalab/core-components/tabs';

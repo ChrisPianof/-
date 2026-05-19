@@ -59,5 +59,5 @@ import { Tabs, Tab } from '@alfalab/core-components/tabs';
 
 ### Don't
 - Don't пропускать resolve.dedupe — Tabs крашится с «Invalid hook call»
-- Don't использовать TabsView для фильтрации внутри карточки — для этого TabsSecondary
+- Don't использовать TabsView для фильтрации внутри карточки — для этого TagGroup
 - Don't ставить Tabs внутрь Body или BackgroundPlate

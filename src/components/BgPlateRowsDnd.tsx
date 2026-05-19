@@ -65,7 +65,7 @@ export function BgPlateRowsDnd<ItemT extends { id: number }>({
   /** Можно ли поставить src item рядом с dest item в одной row. Если нет — drop side ограничивается top/bottom. */
   canGroup?: (srcRowId: number, srcItemId: number, destRowId: number, destItemId: number) => boolean;
   /** Кастомный gap между rows. Решает на основе содержимого предыдущей и текущей row.
-   * По умолчанию `var(--gap-24)`. Используется для правил типа «TabsSecondary → Input/Select/Date: 20px». */
+   * По умолчанию `var(--gap-24)`. Используется для правил типа «TagGroup → Input/Select/Date: 20px». */
   getRowGap?: (prevRow: DnDRow<ItemT>, currentRow: DnDRow<ItemT>) => string;
 }) {
   const [indicator, setIndicator] = useState<Indicator>(null);
