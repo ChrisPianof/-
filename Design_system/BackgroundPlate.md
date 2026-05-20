@@ -1,3 +1,26 @@
+---
+id: cmp-bgplate-001
+name: BackgroundPlate
+---
+
+<!-- stitch:props v1 -->
+- id: p_position
+  name: position
+  type: enum
+  values: ["Level 1", "Level 2"]
+  default: "Level 1"
+- id: p_type
+  name: type
+  type: enum
+  values: [Primary, Secondary, Colored, Border]
+  default: Primary
+<!-- /stitch:props v1 -->
+
+<!-- stitch:slots v1 -->
+- id: s_children
+  name: children
+<!-- /stitch:slots v1 -->
+
 # BackgroundPlate.md — AlfaBank
 
 ## Overview

@@ -1,3 +1,36 @@
+---
+id: cmp-input-001
+name: InputDesktop
+---
+
+<!-- stitch:props v1 -->
+- id: p_label
+  name: label
+  type: string
+  default: "Название поля"
+  textEditable: true
+- id: p_placeholder
+  name: placeholder
+  type: string
+  default: ""
+  textEditable: true
+- id: p_size
+  name: size
+  type: enum
+  values: ["40", "48", "56", "64"]
+  default: "56"
+- id: p_type
+  name: type
+  type: enum
+  values: [text, number, email, password, tel, money]
+  default: text
+- id: p_block
+  name: block
+  type: enum
+  values: ["true", "false"]
+  default: "true"
+<!-- /stitch:props v1 -->
+
 # Input.md — AlfaBank
 ## Overview
 InputDesktop из @alfalab/core-components/input/desktop. Нестандартная onChange-сигнатура: второй аргумент `{ value }`, не event.target.value.

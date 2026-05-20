@@ -1,3 +1,26 @@
+---
+id: cmp-titleview-001
+name: TitleView
+---
+
+<!-- stitch:props v1 -->
+- id: p_heading
+  name: heading
+  type: string
+  default: "Заголовок страницы"
+  textEditable: true
+- id: p_view
+  name: view
+  type: enum
+  values: [xsmall, small, medium, large, xLarge]
+  default: large
+- id: p_subtitle
+  name: subtitle
+  type: string
+  default: ""
+  textEditable: true
+<!-- /stitch:props v1 -->
+
 # TitleView.md — AlfaBank
 
 ## Overview

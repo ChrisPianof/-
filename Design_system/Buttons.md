@@ -1,3 +1,26 @@
+---
+id: cmp-button-001
+name: ButtonDesktop
+---
+
+<!-- stitch:props v1 -->
+- id: p_label
+  name: label
+  type: string
+  default: "Создать заявление"
+  textEditable: true
+- id: p_view
+  name: view
+  type: enum
+  values: [primary, secondary, tertiary, ghost, text, link]
+  default: primary
+- id: p_size
+  name: size
+  type: enum
+  values: ["32", "40", "48", "56", "64", "72"]
+  default: "56"
+<!-- /stitch:props v1 -->
+
 # Buttons.md — AlfaBank
 ## Overview
 ButtonDesktop из @alfalab/core-components. Views, sizes, IconButton, правила corp-темы и обязательного /desktop субпакета.
