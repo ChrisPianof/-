@@ -815,30 +815,34 @@ export default function BasePage() {
   );
 }
 
+const ISLE_PLACEHOLDER_CSS = `
+.isle-placeholder {
+  width: 100%;
+  min-height: 120px;
+  padding: var(--gap-32);
+  border-radius: var(--border-radius-16);
+  border: 1.5px dashed transparent;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  color: transparent;
+}
+.isle-placeholder:hover {
+  border-color: var(--color-light-border-primary);
+  color: var(--color-light-text-secondary);
+}
+`;
+
 function IsleBlockPlaceholder({ onAdd }: { onAdd: () => void }) {
-  const [hover, setHover] = useState(false);
   return (
-    <button
-      type="button"
-      onClick={onAdd}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      style={{
-        width: '100%',
-        minHeight: 120,
-        padding: 'var(--gap-32)',
-        borderRadius: 'var(--border-radius-16)',
-        border: `1.5px dashed ${hover ? 'var(--color-light-graphic-tertiary)' : 'var(--color-light-border-primary)'}`,
-        background: 'transparent',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        transition: 'border-color 0.15s',
-        color: 'var(--color-light-text-secondary)',
-      }}
-    >
-      <PlusMIcon width={24} height={24} />
-    </button>
+    <>
+      <style>{ISLE_PLACEHOLDER_CSS}</style>
+      <button type="button" className="isle-placeholder" onClick={onAdd}>
+        <PlusMIcon width={24} height={24} />
+      </button>
+    </>
   );
 }
