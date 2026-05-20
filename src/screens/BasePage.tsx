@@ -23,6 +23,7 @@ import { StatusBadge } from '@alfalab/core-components/status-badge';
 import { Link } from '@alfalab/core-components/link';
 import { DiamondsSIcon } from '@alfalab/icons-glyph/DiamondsSIcon';
 import { DotsHorizontalMIcon } from '@alfalab/icons-glyph/DotsHorizontalMIcon';
+import { PlusMIcon } from '@alfalab/icons-glyph/PlusMIcon';
 import { DevPanelWrapper, EditableText, type PropSpec, type AddOption } from '@local/devpanel';
 
 type ChildKind = 'title' | 'tabs' | 'input' | 'select' | 'date';
@@ -415,7 +416,7 @@ export default function BasePage() {
     <DevPanelWrapper<TitleViewDevProps>
       title="TitleView"
       onDuplicate={addTitleView}
-      onDelete={removeTitleView(tvId)}
+      onDelete={titleViews.length > 1 ? removeTitleView(tvId) : undefined}
       addOptions={titleViewAddOptions}
       spec={TITLEVIEW_SPEC}
       baseProps={{
@@ -734,7 +735,7 @@ export default function BasePage() {
                 <BackgroundPlate
                   view={BackgroundPlateView.Primary}
                   onDuplicate={duplicateBgPlate(bp.id)}
-                  onDelete={removeBgPlate(bp.id)}
+                  onDelete={bgPlates.length > 1 ? removeBgPlate(bp.id) : undefined}
                   addOptions={bgPlateChildrenAddOptions(bp.id)}
                 >
                   <BgPlateRowsDnd
@@ -765,6 +766,9 @@ export default function BasePage() {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--gap-24)' }}>
+          {isleBlocks.length === 0 ? (
+            <IsleBlockPlaceholder onAdd={addIsleBlock} />
+          ) : (
           <Sortable items={isleBlocks} onReorder={setIsleBlocks}>
             {(ib) => (
               <SortableItem id={ib.id}>
@@ -804,8 +808,37 @@ export default function BasePage() {
               </SortableItem>
             )}
           </Sortable>
+          )}
         </div>
       </div>
     </>
+  );
+}
+
+function IsleBlockPlaceholder({ onAdd }: { onAdd: () => void }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={onAdd}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        width: '100%',
+        minHeight: 120,
+        padding: 'var(--gap-32)',
+        borderRadius: 'var(--border-radius-16)',
+        border: `1px dashed ${hover ? 'var(--color-light-border-secondary)' : 'var(--color-light-border-tertiary)'}`,
+        background: hover ? 'var(--color-light-bg-tertiary)' : 'transparent',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        transition: 'background 0.15s, border-color 0.15s',
+        color: 'var(--color-light-text-secondary)',
+      }}
+    >
+      <PlusMIcon width={24} height={24} />
+    </button>
   );
 }

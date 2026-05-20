@@ -81,6 +81,17 @@ Left
 
 Применять адаптацию через хук `useBreakpoint` (`src/utils/useBreakpoint.ts`). Хардкодить медиа-запросы запрещено (см. `Tokens.md`).
 
+## Обязательные элементы
+
+| Элемент | Минимум | Поведение при минимуме |
+|---|---|---|
+| `TitleView` (page-level) | 1 | Иконка удаления скрыта у последнего |
+| `BgPlate` в Left | 1 | Иконка удаления скрыта у последнего |
+| `IsleBlock` в Right | 0 | Пустая Right → dashed-placeholder с «+» по центру (`PlusMIcon`), hover усиливает border/bg, клик добавляет `IsleBlock` |
+| `TabsView` (page-level) | 0 | Удаляется свободно (опциональная зона) |
+
+`onDelete` в `DevPanelWrapper`/`BackgroundPlate` — передавать `undefined` при минимуме (`length === 1`), кнопка тогда не рендерится. Реализация: `IsleBlockPlaceholder` локально в `BasePage.tsx`.
+
 ### Do
 - Применять фон `base-bg-alt/primary` на корневой обёртке страницы
 - Соблюдать порядок зон: TitleView → TabsView (опц.) → Body
