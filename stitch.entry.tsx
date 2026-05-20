@@ -6,7 +6,8 @@
  *
  * postMessage protocol:
  *   Stitch → iframe:   { type: 'stitch:render', tree: RenderNode[] }
- *   iframe → Stitch:   { type: 'stitch:ready' }     // after first render
+ *   iframe → Stitch:   { type: 'stitch:ready' }                            // after first render
+ *   iframe → Stitch:   { type: 'stitch:navigate', toScreenId: string }     // click on instance с navigation
  *
  * Bundle published как single JS file через vite.stitch.config.ts → gh-pages.
  */
@@ -25,6 +26,7 @@ type RenderNode = {
   componentId: string;
   props: Record<string, string>;
   children: Record<string, RenderNode[]>;
+  navigations?: Record<string, string>;
 };
 
 type RenderMessage = { type: "stitch:render"; tree: RenderNode[] };
@@ -42,22 +44,36 @@ function asBool(v: string | undefined, fallback: boolean): boolean {
   return fallback;
 }
 
+function emitNavigate(toScreenId: string) {
+  window.parent?.postMessage({ type: "stitch:navigate", toScreenId }, "*");
+}
+
 const PLATE_STYLES: Record<string, CSSProperties> = {
-  Primary: { background: "#ffffff", borderRadius: 16 },
-  Secondary: { background: "#f2f3f5", borderRadius: 12 },
-  Colored: { background: "#fff5e0", borderRadius: 16 },
-  Border: { background: "transparent", border: "1px solid #d8d9da", borderRadius: 16 },
+  Primary: { background: "#ffffff" },
+  Secondary: { background: "#f2f3f5" },
+  Colored: { background: "#fff5e0" },
+  Border: { background: "transparent", border: "1px solid #d8d9da" },
 };
 
 const PLATE_LEVEL_RADIUS: Record<string, number> = { "Level 1": 16, "Level 2": 12 };
 
-function StitchBgPlate({ props, children }: { props: Record<string, string>; children: ReactNode }) {
+function StitchBgPlate({
+  node,
+  children,
+  onActivate,
+}: {
+  node: RenderNode;
+  children: ReactNode;
+  onActivate?: () => void;
+}) {
+  const props = node.props;
   const type = props["type"] ?? "Primary";
   const position = props["position"] ?? "Level 1";
   const base = PLATE_STYLES[type] ?? PLATE_STYLES["Primary"]!;
   const radius = PLATE_LEVEL_RADIUS[position] ?? 16;
   return (
     <div
+      onClick={onActivate}
       style={{
         ...base,
         borderRadius: radius,
@@ -65,6 +81,7 @@ function StitchBgPlate({ props, children }: { props: Record<string, string>; chi
         display: "flex",
         flexDirection: "column",
         gap: 16,
+        cursor: onActivate ? "pointer" : "default",
       }}
     >
       {children}
@@ -73,20 +90,24 @@ function StitchBgPlate({ props, children }: { props: Record<string, string>; chi
 }
 
 const TITLE_VIEW_MAP = {
-  xLarge: { view: "xlarge", size: 54 },
-  large: { view: "large", size: 40 },
-  medium: { view: "medium", size: 30 },
-  small: { view: "small", size: 22 },
-  xsmall: { view: "xsmall", size: 18 },
+  xLarge: { view: "xlarge" },
+  large: { view: "large" },
+  medium: { view: "medium" },
+  small: { view: "small" },
+  xsmall: { view: "xsmall" },
 } as const;
 
-function StitchTitle({ props }: { props: Record<string, string> }) {
+function StitchTitle({ node, onActivate }: { node: RenderNode; onActivate?: () => void }) {
+  const props = node.props;
   const view = (props["view"] ?? "large") as keyof typeof TITLE_VIEW_MAP;
   const heading = props["heading"] ?? "Untitled";
   const subtitle = props["subtitle"];
   const map = TITLE_VIEW_MAP[view] ?? TITLE_VIEW_MAP.large;
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+    <div
+      onClick={onActivate}
+      style={{ display: "flex", flexDirection: "column", gap: 4, cursor: onActivate ? "pointer" : "default" }}
+    >
       <Title view={map.view as "xlarge" | "large" | "medium" | "small" | "xsmall"} tag="h1">
         {heading}
       </Title>
@@ -100,7 +121,10 @@ function StitchTitle({ props }: { props: Record<string, string> }) {
 }
 
 function renderNode(node: RenderNode): ReactNode {
-  const { componentId, props, children, instanceId } = node;
+  const { componentId, props, children, instanceId, navigations } = node;
+  const target = navigations?.["onClick"];
+  const onActivate = target ? () => emitNavigate(target) : undefined;
+
   switch (componentId) {
     case "cmp-button-001": {
       const size = asNumber(props["size"], 56);
@@ -112,7 +136,12 @@ function renderNode(node: RenderNode): ReactNode {
         | "text"
         | "link";
       return (
-        <ButtonDesktop key={instanceId} view={view} size={size as 32 | 40 | 48 | 56 | 64 | 72}>
+        <ButtonDesktop
+          key={instanceId}
+          view={view}
+          size={size as 32 | 40 | 48 | 56 | 64 | 72}
+          onClick={onActivate}
+        >
           {props["label"] ?? "Button"}
         </ButtonDesktop>
       );
@@ -134,15 +163,16 @@ function renderNode(node: RenderNode): ReactNode {
           size={size as 40 | 48 | 56 | 64}
           type={type}
           block={asBool(props["block"], true)}
+          onClick={onActivate}
         />
       );
     }
     case "cmp-titleview-001":
-      return <StitchTitle key={instanceId} props={props} />;
+      return <StitchTitle key={instanceId} node={node} onActivate={onActivate} />;
     case "cmp-bgplate-001": {
       const slot = children["children"] ?? [];
       return (
-        <StitchBgPlate key={instanceId} props={props}>
+        <StitchBgPlate key={instanceId} node={node} onActivate={onActivate}>
           {slot.map((c) => renderNode(c))}
         </StitchBgPlate>
       );
@@ -161,11 +191,12 @@ function ensureMount(): { container: HTMLElement; root: Root } {
   if (!container) {
     container = document.createElement("div");
     container.id = "stitch-root";
-    container.style.padding = "32px";
-    container.style.minHeight = "100vh";
-    container.style.background = "var(--color-light-base-bg-secondary, #f2f3f5)";
     document.body.appendChild(container);
   }
+  container.style.padding = "32px";
+  container.style.minHeight = "100vh";
+  container.style.background = "var(--color-light-base-bg-secondary, #f2f3f5)";
+
   const ROOT_KEY = "__stitchRoot";
   const existing = (container as HTMLElement & { [k: string]: unknown })[ROOT_KEY] as Root | undefined;
   if (existing) return { container, root: existing };
