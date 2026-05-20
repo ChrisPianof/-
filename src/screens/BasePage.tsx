@@ -828,13 +828,13 @@ function IsleBlockPlaceholder({ onAdd }: { onAdd: () => void }) {
         minHeight: 120,
         padding: 'var(--gap-32)',
         borderRadius: 'var(--border-radius-16)',
-        border: `1px dashed ${hover ? 'var(--color-light-border-secondary)' : 'var(--color-light-border-tertiary)'}`,
-        background: hover ? 'var(--color-light-bg-tertiary)' : 'transparent',
+        border: `1.5px dashed ${hover ? 'var(--color-light-graphic-tertiary)' : 'var(--color-light-border-primary)'}`,
+        background: 'transparent',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         cursor: 'pointer',
-        transition: 'background 0.15s, border-color 0.15s',
+        transition: 'border-color 0.15s',
         color: 'var(--color-light-text-secondary)',
       }}
     >
