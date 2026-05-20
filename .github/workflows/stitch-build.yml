@@ -1,0 +1,71 @@
+name: stitch-build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "stitch.entry.tsx"
+      - "vite.stitch.config.ts"
+      - "src/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/stitch-build.yml"
+  workflow_dispatch:
+
+# Allow only one concurrent deployment
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Build Stitch bundle
+        run: npm run build:stitch
+      - name: Stage Pages artifact
+        run: |
+          mkdir -p _site
+          cp dist-stitch/stitch-bundle.js _site/stitch-bundle.js
+          cat > _site/index.html <<'EOF'
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8" />
+              <title>Stitch render adapter</title>
+              <meta name="viewport" content="width=device-width,initial-scale=1" />
+            </head>
+            <body>
+              <script src="./stitch-bundle.js"></script>
+            </body>
+          </html>
+          EOF
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
