@@ -16,6 +16,12 @@ export default defineConfig({
   resolve: {
     dedupe: ["react", "react-dom"],
   },
+  /** lib mode не делает substitution `process.env.NODE_ENV` автоматически.
+   *  React и многие deps падают в browser с `process is not defined`. */
+  define: {
+    "process.env.NODE_ENV": JSON.stringify("production"),
+    "process.env": "{}",
+  },
   build: {
     outDir: "dist-stitch",
     emptyOutDir: true,
