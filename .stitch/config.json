@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "componentsMd": "Design_system/",
+  "componentsCode": "src/components/",
+  "pairing": {
+    "default": "[Name].md ↔ [Name].tsx",
+    "overrides": {}
+  },
+  "bundleHosting": {
+    "type": "gh-pages",
+    "config": {}
+  },
+  "stitchChanges": {
+    "backfillPolicy": "require-review"
+  }
+}
