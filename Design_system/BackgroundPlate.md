@@ -259,3 +259,5 @@ import { BackgroundPlate, BackgroundPlateView } from '../components/BackgroundPl
 3. **Mobile Properties** — отсутствует в spec. Имеет ли `[M] BackgroundPlate` те же Position/PageColor/Type или упрощённый набор?
 4. **Hover state** — Default → Active в demo есть, промежуточное Hover визуально не отличается. Существует ли Hover отдельно?
 5. **`📕 Passport`** — на этой странице отсутствует (есть только `PatternTitle` в шапке через PatternTitle template). Статус компонента в Figma — «Можно использовать» (из соседней CorporatePage `PatternTitle`)
+
+<!-- Phase 14 drift test trigger -->
