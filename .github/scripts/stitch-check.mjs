@@ -207,8 +207,10 @@ async function postCheckRun(result) {
       : result.counts.purple > 0 || result.counts.yellow > 0
         ? "neutral"
         : "success";
-  const text = buildMarkdown(result);
-  const externalId = JSON.stringify(result.components).slice(0, 9000);
+  const markdown = buildMarkdown(result);
+  // Embed full JSON as HTML comment в text — external_id capped 255 chars.
+  // Webhook handler / backfill endpoint парсят <!-- stitch:data ... -->.
+  const text = `${markdown}\n\n<!-- stitch:data ${JSON.stringify(result.components)} -->\n`;
   const payload = {
     name: "Stitch drift check",
     head_sha: COMMIT_SHA,
@@ -219,7 +221,6 @@ async function postCheckRun(result) {
       summary: result.summary,
       text,
     },
-    external_id: externalId,
   };
   const res = await fetch(`https://api.github.com/repos/${REPO}/check-runs`, {
     method: "POST",
