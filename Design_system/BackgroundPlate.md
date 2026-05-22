@@ -261,3 +261,4 @@ import { BackgroundPlate, BackgroundPlateView } from '../components/BackgroundPl
 5. **`📕 Passport`** — на этой странице отсутствует (есть только `PatternTitle` в шапке через PatternTitle template). Статус компонента в Figma — «Можно использовать» (из соседней CorporatePage `PatternTitle`)
 
 <!-- Phase 14 drift test trigger -->
+
