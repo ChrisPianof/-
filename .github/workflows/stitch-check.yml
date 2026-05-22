@@ -1,0 +1,35 @@
+name: Stitch drift check
+
+on:
+  pull_request:
+    paths:
+      - 'Design_system/**'
+      - 'src/components/**'
+  push:
+    branches: [main]
+    paths:
+      - 'Design_system/**'
+      - 'src/components/**'
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run drift checker + post check_run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          REPO: ${{ github.repository }}
+        run: node .github/scripts/stitch-check.mjs
