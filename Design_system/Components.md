@@ -207,3 +207,4 @@ import { Status } from '@alfalab/core-components/status';
 - Don't использовать CDNIcon — CDN-адрес нестабилен
 - Don't искать иконки вне @alfalab/icons-glyph
 - Don't дублировать полную документацию — только ссылка на .md файл компонента
+<!-- arnomake.com webhook test -->
