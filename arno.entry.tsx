@@ -1,15 +1,15 @@
 /**
- * Stitch render adapter entry point.
+ * ARNO render adapter entry point.
  *
- * Загружается в sandboxed iframe из Stitch app. Слушает postMessage
+ * Загружается в sandboxed iframe из ARNO app. Слушает postMessage
  * с composition tree → рендерит реальный React с реальным CSS.
  *
  * postMessage protocol:
- *   Stitch → iframe:   { type: 'stitch:render', tree: RenderNode[] }
- *   iframe → Stitch:   { type: 'stitch:ready' }                            // after first render
- *   iframe → Stitch:   { type: 'stitch:navigate', toScreenId: string }     // click on instance с navigation
+ *   ARNO → iframe:   { type: 'arno:render', tree: RenderNode[] }
+ *   iframe → ARNO:   { type: 'arno:ready' }                            // after first render
+ *   iframe → ARNO:   { type: 'arno:navigate', toScreenId: string }     // click on instance с navigation
  *
- * Bundle published как single JS file через vite.stitch.config.ts → gh-pages.
+ * Bundle published как single JS file через vite.arno.config.ts → gh-pages.
  */
 
 import { createRoot, type Root } from "react-dom/client";
@@ -29,7 +29,7 @@ type RenderNode = {
   navigations?: Record<string, string>;
 };
 
-type RenderMessage = { type: "stitch:render"; tree: RenderNode[] };
+type RenderMessage = { type: "arno:render"; tree: RenderNode[] };
 type Incoming = RenderMessage;
 
 function asNumber(v: string | undefined, fallback: number): number {
@@ -45,7 +45,7 @@ function asBool(v: string | undefined, fallback: boolean): boolean {
 }
 
 function emitNavigate(toScreenId: string) {
-  window.parent?.postMessage({ type: "stitch:navigate", toScreenId }, "*");
+  window.parent?.postMessage({ type: "arno:navigate", toScreenId }, "*");
 }
 
 const PLATE_STYLES: Record<string, CSSProperties> = {
@@ -57,7 +57,7 @@ const PLATE_STYLES: Record<string, CSSProperties> = {
 
 const PLATE_LEVEL_RADIUS: Record<string, number> = { "Level 1": 16, "Level 2": 12 };
 
-function StitchBgPlate({
+function ArnoBgPlate({
   node,
   children,
   onActivate,
@@ -97,7 +97,7 @@ const TITLE_VIEW_MAP = {
   xsmall: { view: "xsmall" },
 } as const;
 
-function StitchTitle({ node, onActivate }: { node: RenderNode; onActivate?: () => void }) {
+function ArnoTitle({ node, onActivate }: { node: RenderNode; onActivate?: () => void }) {
   const props = node.props;
   const view = (props["view"] ?? "large") as keyof typeof TITLE_VIEW_MAP;
   const heading = props["heading"] ?? "Untitled";
@@ -168,13 +168,13 @@ function renderNode(node: RenderNode): ReactNode {
       );
     }
     case "cmp-titleview-001":
-      return <StitchTitle key={instanceId} node={node} onActivate={onActivate} />;
+      return <ArnoTitle key={instanceId} node={node} onActivate={onActivate} />;
     case "cmp-bgplate-001": {
       const slot = children["children"] ?? [];
       return (
-        <StitchBgPlate key={instanceId} node={node} onActivate={onActivate}>
+        <ArnoBgPlate key={instanceId} node={node} onActivate={onActivate}>
           {slot.map((c) => renderNode(c))}
-        </StitchBgPlate>
+        </ArnoBgPlate>
       );
     }
     default:
@@ -187,17 +187,17 @@ function renderNode(node: RenderNode): ReactNode {
 }
 
 function ensureMount(): { container: HTMLElement; root: Root } {
-  let container = document.getElementById("stitch-root");
+  let container = document.getElementById("arno-root");
   if (!container) {
     container = document.createElement("div");
-    container.id = "stitch-root";
+    container.id = "arno-root";
     document.body.appendChild(container);
   }
   container.style.padding = "32px";
   container.style.minHeight = "100vh";
   container.style.background = "var(--color-light-base-bg-secondary, #f2f3f5)";
 
-  const ROOT_KEY = "__stitchRoot";
+  const ROOT_KEY = "__arnoRoot";
   const existing = (container as HTMLElement & { [k: string]: unknown })[ROOT_KEY] as Root | undefined;
   if (existing) return { container, root: existing };
   const root = createRoot(container);
@@ -211,7 +211,7 @@ function render(tree: RenderNode[]) {
     <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 960, margin: "0 auto" }}>
       {tree.length === 0 ? (
         <Text view="primary-medium" color="secondary">
-          Empty screen — drop components in Stitch composition editor.
+          Empty screen — drop components in ARNO composition editor.
         </Text>
       ) : (
         tree.map((node) => renderNode(node))
@@ -223,7 +223,7 @@ function render(tree: RenderNode[]) {
 window.addEventListener("message", (event: MessageEvent<Incoming>) => {
   const data = event.data;
   if (!data || typeof data !== "object") return;
-  if (data.type === "stitch:render") {
+  if (data.type === "arno:render") {
     render(data.tree);
   }
 });
@@ -232,4 +232,4 @@ window.addEventListener("message", (event: MessageEvent<Incoming>) => {
 render([]);
 
 // Tell parent we're ready
-window.parent?.postMessage({ type: "stitch:ready" }, "*");
+window.parent?.postMessage({ type: "arno:ready" }, "*");

@@ -1,10 +1,10 @@
 /**
- * Vite config для Stitch render-adapter bundle.
+ * Vite config для ARNO render-adapter bundle.
  *
  * Цель: один self-contained JS файл с инжектом CSS через JS — раздаётся
- * с GitHub Pages, грузится в sandboxed iframe внутри Stitch app.
+ * с GitHub Pages, грузится в sandboxed iframe внутри ARNO app.
  *
- * Запуск: `npm run build:stitch` → dist-stitch/stitch-bundle.js
+ * Запуск: `npm run build:arno` → dist-arno/arno-bundle.js
  */
 
 import { defineConfig } from "vite";
@@ -23,16 +23,16 @@ export default defineConfig({
     "process.env": "{}",
   },
   build: {
-    outDir: "dist-stitch",
+    outDir: "dist-arno",
     emptyOutDir: true,
     cssCodeSplit: false,
     target: "es2022",
     minify: "esbuild",
     lib: {
-      entry: "./stitch.entry.tsx",
-      name: "StitchAdapter",
+      entry: "./arno.entry.tsx",
+      name: "ArnoAdapter",
       formats: ["iife"],
-      fileName: () => "stitch-bundle.js",
+      fileName: () => "arno-bundle.js",
     },
   },
 });

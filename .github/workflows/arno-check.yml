@@ -1,4 +1,4 @@
-name: Stitch drift check
+name: ARNO drift check
 
 on:
   pull_request:
@@ -32,4 +32,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           REPO: ${{ github.repository }}
-        run: node .github/scripts/stitch-check.mjs
+        run: node .github/scripts/arno-check.mjs

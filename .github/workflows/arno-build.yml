@@ -1,15 +1,15 @@
-name: stitch-build
+name: arno-build
 
 on:
   push:
     branches: [main]
     paths:
-      - "stitch.entry.tsx"
-      - "vite.stitch.config.ts"
+      - "arno.entry.tsx"
+      - "vite.arno.config.ts"
       - "src/**"
       - "package.json"
       - "package-lock.json"
-      - ".github/workflows/stitch-build.yml"
+      - ".github/workflows/arno-build.yml"
   workflow_dispatch:
 
 # Allow only one concurrent deployment
@@ -35,22 +35,22 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
-      - name: Build Stitch bundle
-        run: npm run build:stitch
+      - name: Build ARNO bundle
+        run: npm run build:arno
       - name: Stage Pages artifact
         run: |
           mkdir -p _site
-          cp dist-stitch/stitch-bundle.js _site/stitch-bundle.js
+          cp dist-arno/arno-bundle.js _site/arno-bundle.js
           cat > _site/index.html <<'EOF'
           <!doctype html>
           <html lang="en">
             <head>
               <meta charset="utf-8" />
-              <title>Stitch render adapter</title>
+              <title>ARNO render adapter</title>
               <meta name="viewport" content="width=device-width,initial-scale=1" />
             </head>
             <body>
-              <script src="./stitch-bundle.js"></script>
+              <script src="./arno-bundle.js"></script>
             </body>
           </html>
           EOF

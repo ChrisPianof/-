@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "build:stitch": "vite build --config vite.stitch.config.ts"
+    "build:arno": "vite build --config vite.arno.config.ts"
   },
   "dependencies": {
     "@alfalab/core-components": "latest",

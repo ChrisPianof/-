@@ -10,7 +10,7 @@
     "type": "gh-pages",
     "config": {}
   },
-  "stitchChanges": {
+  "arnoChanges": {
     "backfillPolicy": "require-review"
   }
 }
