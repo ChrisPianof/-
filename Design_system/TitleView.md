@@ -3,7 +3,7 @@ id: cmp-titleview-001
 name: TitleView
 ---
 
-<!-- stitch:props v1 -->
+<!-- arno:props v1 -->
 - id: p_heading
   name: heading
   type: string
@@ -19,7 +19,7 @@ name: TitleView
   type: string
   default: ""
   textEditable: true
-<!-- /stitch:props v1 -->
+<!-- /arno:props v1 -->
 
 # TitleView.md — AlfaBank
 
