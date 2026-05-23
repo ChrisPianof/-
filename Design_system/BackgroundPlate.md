@@ -3,7 +3,7 @@ id: cmp-bgplate-001
 name: BackgroundPlate
 ---
 
-<!-- stitch:props v1 -->
+<!-- arno:props v1 -->
 - id: p_position
   name: position
   type: enum
@@ -14,12 +14,12 @@ name: BackgroundPlate
   type: enum
   values: [Primary, Secondary, Colored, Border]
   default: Primary
-<!-- /stitch:props v1 -->
+<!-- /arno:props v1 -->
 
-<!-- stitch:slots v1 -->
+<!-- arno:slots v1 -->
 - id: s_children
   name: children
-<!-- /stitch:slots v1 -->
+<!-- /arno:slots v1 -->
 
 # BackgroundPlate.md — AlfaBank
 

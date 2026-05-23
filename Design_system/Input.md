@@ -3,7 +3,7 @@ id: cmp-input-001
 name: InputDesktop
 ---
 
-<!-- stitch:props v1 -->
+<!-- arno:props v1 -->
 - id: p_label
   name: label
   type: string
@@ -29,7 +29,7 @@ name: InputDesktop
   type: enum
   values: ["true", "false"]
   default: "true"
-<!-- /stitch:props v1 -->
+<!-- /arno:props v1 -->
 
 # Input.md — AlfaBank
 ## Overview
